@@ -3,12 +3,12 @@ import random
 import polars as pl
 import pytest
 
-from sackigami.fetch import (
-    TEAMS,
+from fetch import (
     filter_by_threshold,
     find_similar_stat_lines,
     retrieve_last_week,
 )
+from constants import TEAMS
 
 
 # TODO: What if the randoms actually generate equal stat lines?
