@@ -3,32 +3,7 @@ from typing import Optional
 import nflreadpy as nfl
 import polars as pl
 
-TEAMS: dict[str, str] = {
-    "ATL": "Atlanta Falcons",
-    "TB": "Tampa Bay Buccaneers",
-    "WAS": "Washington Commanders",
-    "BUF": "Buffalo Bills",
-    "CAR": "Carolina Panthers",
-    "BAL": "Baltimore Ravens",
-}
-
-DATA_OF_INTEREST: tuple[str, ...] = (
-    "team",
-    "season",
-    "week",
-    "opponent_team",
-    "sacks_suffered",
-    "sack_yards_lost",
-    "sack_fumbles",
-    "sack_fumbles_lost",
-)
-
-STAT_THRESHOLDS: dict[str, int] = {
-    "sacks_suffered": 5,
-    "sack_yards_lost": -25,
-    "sack_fumbles": 2,
-    "sack_fumbles_lost": 2,
-}
+from constants import STAT_THRESHOLDS, DATA_OF_INTEREST, TEAMS
 
 
 def retrieve_complete_team_stats() -> pl.DataFrame:
@@ -108,7 +83,9 @@ def print_stat_line(stat_line: pl.DataFrame, complete_team_stats: pl.DataFrame) 
         item: stat_line.select(pl.col(item).last()).item() for item in DATA_OF_INTEREST
     }
 
-    prev: Optional[dict[str, int]] = find_similar_stat_lines(complete_team_stats, stat_line)
+    prev: Optional[dict[str, int]] = find_similar_stat_lines(
+        complete_team_stats, stat_line
+    )
 
     print(
         f"The {TEAMS[data["team"]]} suffered {data["sacks_suffered"]} sacks in their game against the {TEAMS[data["opponent_team"]]} today. "
