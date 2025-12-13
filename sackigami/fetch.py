@@ -3,7 +3,7 @@ from typing import Optional
 import nflreadpy as nfl
 import polars as pl
 
-TEAMS = {
+TEAMS: dict[str, str] = {
     "ATL": "Atlanta Falcons",
     "TB": "Tampa Bay Buccaneers",
     "WAS": "Washington Commanders",
@@ -12,7 +12,7 @@ TEAMS = {
     "BAL": "Baltimore Ravens",
 }
 
-DATA_OF_INTEREST = (
+DATA_OF_INTEREST: tuple[str, ...] = (
     "team",
     "season",
     "week",
@@ -23,7 +23,7 @@ DATA_OF_INTEREST = (
     "sack_fumbles_lost",
 )
 
-STAT_THRESHOLDS = {
+STAT_THRESHOLDS: dict[str, int] = {
     "sacks_suffered": 5,
     "sack_yards_lost": -25,
     "sack_fumbles": 2,
@@ -59,7 +59,7 @@ def filter_by_threshold(stat_lines: pl.DataFrame) -> pl.DataFrame:
 
 def find_similar_stat_lines(
     complete_team_stats: pl.DataFrame, stat_line: pl.DataFrame
-) -> Optional[dict]:
+) -> Optional[dict[str, int]]:
     similar_lines: pl.DataFrame = complete_team_stats.filter(
         (
             pl.col("sacks_suffered")
@@ -92,8 +92,8 @@ def find_similar_stat_lines(
     if count == 0:
         return None
 
-    week = similar_lines.select(pl.col("week").last()).item()
-    season = similar_lines.select(pl.col("season").last()).item()
+    week: int = similar_lines.select(pl.col("week").last()).item()
+    season: int = similar_lines.select(pl.col("season").last()).item()
 
     return {
         "count": count,
@@ -108,7 +108,7 @@ def print_stat_line(stat_line: pl.DataFrame, complete_team_stats: pl.DataFrame) 
         item: stat_line.select(pl.col(item).last()).item() for item in DATA_OF_INTEREST
     }
 
-    prev: Optional[dict] = find_similar_stat_lines(complete_team_stats, stat_line)
+    prev: Optional[dict[str, int]] = find_similar_stat_lines(complete_team_stats, stat_line)
 
     print(
         f"The {TEAMS[data["team"]]} suffered {data["sacks_suffered"]} sacks in their game against the {TEAMS[data["opponent_team"]]} today. "
