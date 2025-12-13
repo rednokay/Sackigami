@@ -1,3 +1,5 @@
+import polars as pl
+
 TEAMS: dict[str, str] = {
     "ATL": "Atlanta Falcons",
     "TB": "Tampa Bay Buccaneers",
@@ -24,3 +26,12 @@ STAT_THRESHOLDS: dict[str, int] = {
     "sack_fumbles": 2,
     "sack_fumbles_lost": 2,
 }
+
+COL_TEAM: pl.Expr = pl.col("team")
+COL_SEASON: pl.Expr = pl.col("season")
+COL_WEEK: pl.Expr = pl.col("week")
+COL_OPPONENT_TEAM: pl.Expr = pl.col("opponent_team")
+COL_SACKS_SUFFERED: pl.Expr = pl.col("sacks_suffered")
+COL_SACK_YARDS_LOST: pl.Expr = pl.col("sack_yards_lost")
+COL_SACK_FUMBLES: pl.Expr = pl.col("sack_fumbles")
+COL_SACK_FUMBLES_LOST: pl.Expr = pl.col("sack_fumbles_lost")

@@ -3,7 +3,19 @@ from typing import Optional
 import nflreadpy as nfl
 import polars as pl
 
-from constants import STAT_THRESHOLDS, DATA_OF_INTEREST, TEAMS
+from constants import (
+    STAT_THRESHOLDS,
+    DATA_OF_INTEREST,
+    TEAMS,
+    COL_OPPONENT_TEAM,
+    COL_SACK_FUMBLES,
+    COL_SACK_FUMBLES_LOST,
+    COL_SACKS_SUFFERED,
+    COL_SACK_YARDS_LOST,
+    COL_SEASON,
+    COL_WEEK,
+    COL_TEAM,
+)
 
 
 def retrieve_complete_team_stats() -> pl.DataFrame:
@@ -11,11 +23,11 @@ def retrieve_complete_team_stats() -> pl.DataFrame:
 
 
 def retrieve_last_week(complete_team_stats: pl.DataFrame) -> pl.DataFrame:
-    last_season: int = complete_team_stats.select(pl.col("season").last()).item()
-    last_week: int = complete_team_stats.select(pl.col("week").last()).item()
+    last_season: int = complete_team_stats.select(COL_SEASON.last()).item()
+    last_week: int = complete_team_stats.select(COL_WEEK.last()).item()
 
     return complete_team_stats.filter(
-        (pl.col("season") == last_season) & (pl.col("week") == last_week)
+        (COL_SEASON == last_season) & (COL_WEEK == last_week)
     )
 
 
@@ -25,10 +37,10 @@ def parse_sack_data(weekly_stat_lines: pl.DataFrame) -> pl.DataFrame:
 
 def filter_by_threshold(stat_lines: pl.DataFrame) -> pl.DataFrame:
     return stat_lines.filter(
-        (pl.col("sacks_suffered") >= STAT_THRESHOLDS["sacks_suffered"])
-        | (pl.col("sack_yards_lost") <= STAT_THRESHOLDS["sack_yards_lost"])
-        | (pl.col("sack_fumbles") >= STAT_THRESHOLDS["sack_fumbles"])
-        | (pl.col("sack_fumbles_lost") >= STAT_THRESHOLDS["sack_fumbles_lost"])
+        (COL_SACKS_SUFFERED >= STAT_THRESHOLDS["sacks_suffered"])
+        | (COL_SACK_YARDS_LOST <= STAT_THRESHOLDS["sack_yards_lost"])
+        | (COL_SACK_FUMBLES >= STAT_THRESHOLDS["sack_fumbles"])
+        | (COL_SACK_FUMBLES_LOST >= STAT_THRESHOLDS["sack_fumbles_lost"])
     )
 
 
@@ -36,29 +48,20 @@ def find_similar_stat_lines(
     complete_team_stats: pl.DataFrame, stat_line: pl.DataFrame
 ) -> Optional[dict[str, int]]:
     similar_lines: pl.DataFrame = complete_team_stats.filter(
-        (
-            pl.col("sacks_suffered")
-            == stat_line.select(pl.col("sacks_suffered").last()).item()
-        )
+        (COL_SACKS_SUFFERED == stat_line.select(COL_SACKS_SUFFERED.last()).item())
+        & (COL_SACK_YARDS_LOST == stat_line.select(COL_SACK_YARDS_LOST.last()).item())
+        & (COL_SACK_FUMBLES == stat_line.select(COL_SACK_FUMBLES.last()).item())
         & (
-            pl.col("sack_yards_lost")
-            == stat_line.select(pl.col("sack_yards_lost").last()).item()
-        )
-        & (
-            pl.col("sack_fumbles")
-            == stat_line.select(pl.col("sack_fumbles").last()).item()
-        )
-        & (
-            pl.col("sack_fumbles_lost")
-            == stat_line.select(pl.col("sack_fumbles_lost").last()).item()
+            COL_SACK_FUMBLES_LOST
+            == stat_line.select(COL_SACK_FUMBLES_LOST.last()).item()
         )
     )
 
     similar_lines = similar_lines.filter(
         ~(
-            (pl.col("team") == stat_line.select(pl.col("team").last()).item())
-            & (pl.col("season") == stat_line.select(pl.col("season").last()).item())
-            & (pl.col("week") == stat_line.select(pl.col("week").last()).item())
+            (COL_TEAM == stat_line.select(COL_TEAM.last()).item())
+            & (COL_SEASON == stat_line.select(COL_SEASON.last()).item())
+            & (COL_WEEK == stat_line.select(COL_WEEK.last()).item())
         )
     )
 
@@ -67,8 +70,8 @@ def find_similar_stat_lines(
     if count == 0:
         return None
 
-    week: int = similar_lines.select(pl.col("week").last()).item()
-    season: int = similar_lines.select(pl.col("season").last()).item()
+    week: int = similar_lines.select(COL_WEEK.last()).item()
+    season: int = similar_lines.select(COL_SEASON.last()).item()
 
     return {
         "count": count,
