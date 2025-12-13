@@ -12,7 +12,7 @@ TEAMS = {
     "BAL": "Baltimore Ravens",
 }
 
-DATA_OF_INTEREST = [
+DATA_OF_INTEREST = (
     "team",
     "season",
     "week",
@@ -21,7 +21,7 @@ DATA_OF_INTEREST = [
     "sack_yards_lost",
     "sack_fumbles",
     "sack_fumbles_lost",
-]
+)
 
 STAT_THRESHOLDS = {
     "sacks_suffered": 5,
