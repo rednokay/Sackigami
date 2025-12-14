@@ -22,12 +22,20 @@ def retrieve_complete_team_stats() -> pl.DataFrame:
     return nfl.load_team_stats(seasons=True, summary_level="week")
 
 
-def retrieve_last_week(complete_team_stats: pl.DataFrame) -> pl.DataFrame:
+def parse_last_gameday(complete_team_stats: pl.DataFrame) -> dict[str, int]:
     last_season: int = complete_team_stats.select(COL_SEASON.last()).item()
     last_week: int = complete_team_stats.select(COL_WEEK.last()).item()
+    return {
+        "season": last_season,
+        "week": last_week,
+    }
+
+
+def retrieve_week(complete_team_stats: pl.DataFrame) -> pl.DataFrame:
+    last_gameday: dict[str, int] = parse_last_gameday(complete_team_stats)
 
     return complete_team_stats.filter(
-        (COL_SEASON == last_season) & (COL_WEEK == last_week)
+        (COL_SEASON == last_gameday["season"]) & (COL_WEEK == last_gameday["week"])
     )
 
 

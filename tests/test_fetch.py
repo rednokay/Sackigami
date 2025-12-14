@@ -6,7 +6,7 @@ import pytest
 from fetch import (
     filter_by_threshold,
     find_similar_stat_lines,
-    retrieve_last_week,
+    retrieve_week,
 )
 from constants import TEAMS
 
@@ -196,8 +196,8 @@ def complete_stats_no_repeats() -> pl.DataFrame:
     )
 
 
-def test_retrieves_last_week(complete_stats):
-    last_week = retrieve_last_week(complete_stats)
+def test_retrieves_week(complete_stats):
+    last_week = retrieve_week(complete_stats)
 
     expected = pl.DataFrame(
         {
@@ -217,7 +217,7 @@ def test_retrieves_last_week(complete_stats):
 
 class TestFindSimilarStatLines:
     def test_existing_similar_stat_linse(self, complete_stats):
-        relevant_last_week = filter_by_threshold(retrieve_last_week(complete_stats))
+        relevant_last_week = filter_by_threshold(retrieve_week(complete_stats))
 
         sim = find_similar_stat_lines(complete_stats, relevant_last_week)
 
@@ -226,7 +226,7 @@ class TestFindSimilarStatLines:
 
     def test_no_exiting_similar_stat_line(self, complete_stats_no_repeats):
         relevant_last_week = filter_by_threshold(
-            retrieve_last_week(complete_stats_no_repeats)
+            retrieve_week(complete_stats_no_repeats)
         )
 
         sim = find_similar_stat_lines(complete_stats_no_repeats, relevant_last_week)

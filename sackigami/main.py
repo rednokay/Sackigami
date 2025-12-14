@@ -6,13 +6,13 @@ from fetch import (
     parse_sack_data,
     print_stat_line,
     retrieve_complete_team_stats,
-    retrieve_last_week,
+    retrieve_week,
 )
 
 
 def main():
     data = retrieve_complete_team_stats()
-    cw = filter_by_threshold(retrieve_last_week(data))
+    cw = filter_by_threshold(retrieve_week(data))
     sacks = parse_sack_data(cw)
 
     print(sacks)
