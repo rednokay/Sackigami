@@ -24,7 +24,7 @@ def complete_stats() -> pl.DataFrame:
         2025,
     ]
     week: list[int] = [
-        random.randint(1, 18),
+        5,
         random.randint(1, 18),
         random.randint(1, 10),
         random.randint(10, 18),
@@ -35,7 +35,7 @@ def complete_stats() -> pl.DataFrame:
 
     teams_short: list[str] = list(TEAMS.keys())
     team: list[str] = [
-        random.choices(teams_short)[0],
+        "WAS",
         random.choices(teams_short)[0],
         random.choices(teams_short)[0],
         random.choices(teams_short)[0],
@@ -45,7 +45,7 @@ def complete_stats() -> pl.DataFrame:
     ]
     opponent_team = random.choices(teams_short, k=7)
     opponent_team: list[str] = [
-        random.choices(teams_short)[0],
+        "BAL",
         random.choices(teams_short)[0],
         random.choices(teams_short)[0],
         random.choices(teams_short)[0],
@@ -196,23 +196,47 @@ def complete_stats_no_repeats() -> pl.DataFrame:
     )
 
 
-def test_retrieves_week(complete_stats):
-    last_week = retrieve_week(complete_stats)
+class TestRetrieveWeek:
+    def test_retrieve_week_no_gameday_given(self, complete_stats):
+        last_week = retrieve_week(complete_stats)
 
-    expected = pl.DataFrame(
-        {
-            "season": [2025, 2025],
-            "week": [16, 16],
-            "team": ["BUF", "WAS"],
-            "opponent_team": ["CAR", "BAL"],
-            "sacks_suffered": [7, 7],
-            "sack_yards_lost": [-45, -45],
-            "sack_fumbles": [3, 3],
-            "sack_fumbles_lost": [2, 2],
+        expected = pl.DataFrame(
+            {
+                "season": [2025, 2025],
+                "week": [16, 16],
+                "team": ["BUF", "WAS"],
+                "opponent_team": ["CAR", "BAL"],
+                "sacks_suffered": [7, 7],
+                "sack_yards_lost": [-45, -45],
+                "sack_fumbles": [3, 3],
+                "sack_fumbles_lost": [2, 2],
+            }
+        )
+
+        assert last_week.to_dicts() == expected.to_dicts()
+
+    def test_retrieve_week_with_gameday(self, complete_stats):
+        gameday: dict[str, int] = {
+            "week": 5,
+            "season": 1999,
         }
-    )
 
-    assert last_week.to_dicts() == expected.to_dicts()
+        week = retrieve_week(complete_stats, week=gameday)
+
+        expected = pl.DataFrame(
+            {
+                "season": [1999],
+                "week": [5],
+                "team": ["WAS"],
+                "opponent_team": ["BAL"],
+                "sacks_suffered": [7],
+                "sack_yards_lost": [-45],
+                "sack_fumbles": [3],
+                "sack_fumbles_lost": [2],
+            }
+        )
+
+        assert week.to_dicts() == expected.to_dicts()
 
 
 class TestFindSimilarStatLines:

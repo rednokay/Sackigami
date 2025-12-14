@@ -31,11 +31,15 @@ def parse_last_gameday(complete_team_stats: pl.DataFrame) -> dict[str, int]:
     }
 
 
-def retrieve_week(complete_team_stats: pl.DataFrame) -> pl.DataFrame:
-    last_gameday: dict[str, int] = parse_last_gameday(complete_team_stats)
+def retrieve_week(
+    complete_team_stats: pl.DataFrame, week: Optional[dict[str, int]] = None
+) -> pl.DataFrame:
+    gameday: dict[str, int] = (
+        parse_last_gameday(complete_team_stats) if week is None else week
+    )
 
     return complete_team_stats.filter(
-        (COL_SEASON == last_gameday["season"]) & (COL_WEEK == last_gameday["week"])
+        (COL_SEASON == gameday["season"]) & (COL_WEEK == gameday["week"])
     )
 
 
