@@ -9,6 +9,7 @@ from constants import TEAMS
 import polars as pl
 import json
 import x
+import time
 from typing import Optional
 from pathlib import Path
 
@@ -22,6 +23,7 @@ from pathlib import Path
 OFFLINE_TEST: bool = True
 
 SAVE_PATH: Path = Path("posted.json")
+POST_TIMEOUT = 3
 
 
 def save_game_to_json(game: dict[str, int | str], path: Path = SAVE_PATH) -> None:
@@ -83,6 +85,7 @@ def post(
 
     if not OFFLINE_TEST:
         x.post(output)
+        time.sleep(POST_TIMEOUT)
 
 
 def has_been_posted(game: dict[str, int | str], path: Path = SAVE_PATH) -> bool:
