@@ -23,12 +23,25 @@ from fetch import (
 # TODO: Handle negative https reponse
 
 OFFLINE_TEST: bool = True
+"""Flag to disable and enable posting X and using the X API.
+
+For True the X API will not be called.
+"""
 
 SAVE_PATH: Path = Path("posted.json")
+"""Default save path for JSON game data."""
+
 POST_TIMEOUT = 45
+"""Base timeout between seperate X posts."""
 
 
 def save_game_to_json(game: dict[str, int | str], path: Path = SAVE_PATH) -> None:
+    """Saves game data to a file in JSON format.
+
+    Args:
+        game (dict[str, int  |  str]): Dict that contains game data.
+        path (Path, optional): Path where to save the JSON data. Defaults to SAVE_PATH.
+    """
     exiting_games: list[dict[str, int | str]] = load_game_from_json(path)
     exiting_games.append(game)
 
@@ -36,6 +49,14 @@ def save_game_to_json(game: dict[str, int | str], path: Path = SAVE_PATH) -> Non
 
 
 def load_game_from_json(path: Path = SAVE_PATH) -> list[dict[str, int | str]]:
+    """Load game data from a JSON file.
+
+    Args:
+        path (Path, optional): Path to the saved gama data JSON file. Defaults to SAVE_PATH.
+
+    Returns:
+        list[dict[str, int | str]]: List with all saved game data.
+    """
     if path.exists():
         return json.loads(path.read_text())
     else:
@@ -43,10 +64,28 @@ def load_game_from_json(path: Path = SAVE_PATH) -> list[dict[str, int | str]]:
 
 
 def plural_s(word: str, num: int) -> str:
+    """Pluralize words that are pularilzed with an appending 's' when needing the plural.
+
+    Args:
+        word (str): Word to pluralize in singular.
+        num (int): Number on which to dependent the form on.
+
+    Returns:
+        str: Singular or plural of word.
+    """
     return word + "s" if num != 1 else word
 
 
 def create_string(game: dict[str, int | str], similar: Optional[dict[str, int]]) -> str:
+    """Creates a string which is to be posted on stdout and X.
+
+    Args:
+        game (dict[str, int  |  str]): Dict that contains game data.
+        similar (Optional[dict[str, int]]): Dict that contains data how often the same game stats happened before. None if never.
+
+    Returns:
+        str: The string which is to be posted.
+    """
     output: list[str] = []
     team: str = TEAMS[game["team"]]
     opponent_team: str = TEAMS[game["opponent_team"]]
@@ -100,6 +139,13 @@ def post(
     similar: Optional[dict[str, int]],
     path: Path = SAVE_PATH,
 ) -> None:
+    """Posts a game to stdout and X.
+
+    Args:
+        game (dict[str, int  |  str]): Dict that contains game data.
+        similar (Optional[dict[str, int]]): Dict that contains data how often the same game stats happened before. None if never.
+        path (Path, optional): Path where to save games of completed posts. Defaults to SAVE_PATH.
+    """
     output: str = create_string(game, similar)
 
     print(output)
@@ -116,6 +162,15 @@ def post(
 
 
 def has_been_posted(game: dict[str, int | str], path: Path = SAVE_PATH) -> bool:
+    """Checks whether a game has already been posted.
+
+    Args:
+        game (dict[str, int  |  str]): Dict that contains game data.
+        path (Path, optional): Path where to look for saved games in JSON format. Defaults to SAVE_PATH.
+
+    Returns:
+        bool: True if game has been posted, False if not.
+    """
     exiting_games: list[dict[str, int | str]] = load_game_from_json(path)
     return game in exiting_games
 
@@ -123,6 +178,18 @@ def has_been_posted(game: dict[str, int | str], path: Path = SAVE_PATH) -> bool:
 def worth_posting(
     game: dict[str, int | str], similar: Optional[dict[str, int]]
 ) -> bool:
+    """Checks whether a game is worth posting.
+
+    The game is compared against certain thresholds or milestones in order to
+    decide on whether it is worth posting.
+
+    Args:
+        game (dict[str, int  |  str]): Dict that contains the game data.
+        similar (Optional[dict[str, int]]): Dict that contains data how often the same game stats happened before. None if never.
+
+    Returns:
+        bool: True if the game is worth, False if not.
+    """
 
     if has_been_posted(game):
         return False
@@ -156,6 +223,12 @@ def worth_posting(
 
 
 def loop_over_week(week: pl.DataFrame, complete_team_stats: pl.DataFrame) -> None:
+    """Iterates over a game day, prases the data and posts data.
+
+    Args:
+        week (pl.DataFrame): Game stats of the week,
+        complete_team_stats (pl.DataFrame): All stats.
+    """
     week_sack_data = parse_sack_data(week)
     for game in week_sack_data.iter_rows(named=True):
         sim: Optional[dict[str, int]] = find_similar_stat_lines(
