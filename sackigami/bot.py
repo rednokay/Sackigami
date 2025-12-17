@@ -12,10 +12,9 @@ import x
 import time
 from typing import Optional
 from pathlib import Path
+from datetime import date
 
 # TODO: At the end of a week, post all 0 sack teams
-# TODO: Add sacks but no yardage lost?
-# TODO: Rare stats lines
 # TODO: Reduce save file size by only storing identifyind data
 # TODO: Delete/clear save file when week is over
 # TODO: Wrapped at the end of the season
@@ -106,6 +105,18 @@ def worth_posting(
         return False
 
     if similar is None:
+        return True
+
+    if similar["count"] <= 4:
+        return True
+
+    if similar["season"] <= date.today().year - 15:
+        return True
+
+    if (
+        game["sacks_suffered"] >= STAT_THRESHOLDS["sacks_suffered"]
+        and game["sack_yards_lost"] == 0
+    ):
         return True
 
     if (
