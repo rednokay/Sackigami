@@ -1,11 +1,15 @@
 import pytest
+import polars as pl
 from bot import (
     save_game_to_json,
     load_game_from_json,
     create_string,
     has_been_posted,
     post,
+    loop_over_week,
 )
+from fetch import retrieve_week
+from test_fetch import complete_stats_no_repeats, complete_stats
 
 # TODO: Test worth_posting, loop over week
 
@@ -116,3 +120,15 @@ class TestHasBeenPosted:
 
         assert save_path.exists()
         assert has_been_posted(game, save_path)
+
+
+# TODO: Add test for no sackigami
+class TestLoopOverWeek:
+    def test_sackigami(self, capsys, complete_stats_no_repeats):
+        last_week: pl.DataFrame = retrieve_week(complete_stats_no_repeats)
+        loop_over_week(last_week, complete_stats_no_repeats)
+
+        captured: pytest.capture.CapturedResults = capsys.readouterr()
+
+        assert "Sackigami!" in captured.out
+        assert "No Sackigami!" not in captured.out
