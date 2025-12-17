@@ -55,18 +55,22 @@ def create_string(game: dict[str, int | str], similar: Optional[dict[str, int]])
     sack_fumbles_lost: int = int(game["sack_fumbles_lost"])
 
     output.append(
-        f"The {team} suffered {sacks_suffered} sacks in their game against the {opponent_team}. This lead to a total of {abs(sack_yards_lost)} yards lost."
+        f"The {team} suffered {sacks_suffered} {plural_s("sack", sacks_suffered)} in their game against the {opponent_team}. This lead to a total of {abs(sack_yards_lost)} {plural_s("yard", sack_yards_lost)} lost."
     )
-    output.append(
-        f"{sack_fumbles} of those sacks were strip-sacks, resulting in {sack_fumbles_lost} {plural_s("turnover", sack_fumbles_lost)}."
-    )
+    if sacks_suffered == 1:
+        output.append(
+            f"That sack was a strip-sack, resulting in {sack_fumbles_lost} {plural_s("turnover", sack_fumbles_lost)}."
+        )
+    else:
+        output.append(
+            f"{sack_fumbles} of those sacks were strip-sacks, resulting in {sack_fumbles_lost} {plural_s("turnover", sack_fumbles_lost)}."
+        )
 
     if similar is None:
         output.insert(0, "Sackigami!\n")
         output.append("\nThis has never happened before.")
     else:
         output.insert(0, "No Sackigami!\n")
-        plural_time: str = "times" if similar["count"] != 1 else "time"
         output.append(
             f"\nThis has happened {similar["count"]} {plural_s("time", similar["count"])} before. Most recently in week {similar["week"]} of the {similar["season"]} season."
         )
@@ -129,9 +133,9 @@ def loop_over_week(week: pl.DataFrame, complete_team_stats: pl.DataFrame) -> Non
         else:
             if worth_posting(game, sim):
                 post(game, sim)
-    
+
     if OFFLINE_TEST:
-        Path(SAVE_PATH).unlink(missing_ok=True) 
+        Path(SAVE_PATH).unlink(missing_ok=True)
 
 
 def main() -> None:

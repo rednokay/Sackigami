@@ -72,13 +72,20 @@ class TestCreateString:
     def test_to_sackigami_singular(self, game, similar_not_none):
         similar_single: dict[str, int | str] = similar_not_none
         similar_single["count"] = 1
-        created: str = create_string(game, similar_single)
+
+        game_single: dict[str, int | str] = game
+        for key, val in game_single.items():
+            match val:
+                case int():
+                    game_single[key] = 1
+
+        created: str = create_string(game_single, similar_single)
 
         expected: str = (
             "No Sackigami!\n\n"
-            "The Washington Commanders suffered 7 sacks in their game against the Baltimore Ravens. "
-            "This lead to a total of 45 yards lost.\n"
-            "3 of those sacks were strip-sacks, resulting in 2 turnovers.\n\n"
+            "The Washington Commanders suffered 1 sack in their game against the Baltimore Ravens. "
+            "This lead to a total of 1 yard lost.\n"
+            "That sack was a strip-sack, resulting in 1 turnover.\n\n"
             "This has happened 1 time before. Most recently in week 12 of the 2002 season."
         )
 
