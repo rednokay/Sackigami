@@ -112,26 +112,3 @@ def find_similar_stat_lines(
         "week": last_week,
         "season": last_season,
     }
-
-
-# TODO: Pluralize
-def print_stat_line(stat_line: pl.DataFrame, complete_team_stats: pl.DataFrame) -> None:
-    data = {
-        item: stat_line.select(pl.col(item).last()).item() for item in DATA_OF_INTEREST
-    }
-
-    prev: Optional[dict[str, int]] = find_similar_stat_lines(
-        complete_team_stats, stat_line
-    )
-
-    print(
-        f"The {TEAMS[data["team"]]} suffered {data["sacks_suffered"]} sacks in their game against the {TEAMS[data["opponent_team"]]} today. "
-        + f"This resulted in {abs(data["sack_yards_lost"])} yards lost. "
-        + f"{data["sack_fumbles"]} of those sacks were strip-sacks resulting in {data["sack_fumbles_lost"]} turnovers."
-    )
-
-    if prev is not None:
-        print(
-            f'No Sackigami! This stat line happened {prev["count"]} times before. '
-            + f'Most recently in week {prev["week"]} of {prev["season"]}.'
-        )
