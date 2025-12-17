@@ -256,3 +256,36 @@ class TestFindSimilarStatLines:
         sim = find_similar_stat_lines(complete_stats_no_repeats, relevant_last_week)
 
         assert sim is None
+
+    def test_existing_similar_stat_linse_dcit(self, complete_stats):
+        relevant_last_week = {
+            "season": 2025,
+            "week": 16,
+            "team": "WAS",
+            "sacks_suffered": 7,
+            "sack_yards_lost": -45,
+            "sack_fumbles": 3,
+            "sack_fumbles_lost": 2,
+        }
+
+        print(f"{relevant_last_week=}")
+
+        sim = find_similar_stat_lines(complete_stats, relevant_last_week)
+
+        assert sim is not None
+        assert list(sim.values()) == [3, 16, 2025]
+
+    def test_no_exiting_similar_stat_line_dict(self, complete_stats_no_repeats):
+        relevant_last_week = {
+            "season": 2025,
+            "week": 16,
+            "team": "WAS",
+            "sacks_suffered": 7,
+            "sack_yards_lost": -45,
+            "sack_fumbles": 3,
+            "sack_fumbles_lost": 2,
+        }
+
+        sim = find_similar_stat_lines(complete_stats_no_repeats, relevant_last_week)
+
+        assert sim is None
