@@ -1,4 +1,50 @@
 import polars as pl
+from dataclasses import dataclass, field
+
+
+@dataclass(frozen=True)
+class ColumnsOfInterest:
+    team: pl.Expr = field(default_factory=lambda: pl.col("team"))
+    """Team stats correspond to."""
+
+    season: pl.Expr = field(default_factory=lambda: pl.col("season"))
+    """Season or year of the game."""
+
+    week: pl.Expr = field(default_factory=lambda: pl.col("week"))
+    """Week or gameday of the game."""
+
+    opponent_team: pl.Expr = field(default_factory=lambda: pl.col("opponent_team"))
+    """Opponent of the team."""
+
+    sacks_suffered: pl.Expr = field(default_factory=lambda: pl.col("sacks_suffered"))
+    """Sacks surrendered by the team."""
+
+    sack_yards_lost: pl.Expr = field(default_factory=lambda: pl.col("sack_yards_lost"))
+    """Yards lost on all sacks combined."""
+
+    sack_fumbles: pl.Expr = field(default_factory=lambda: pl.col("sack_fumbles"))
+    """Sacks which ended in fumbles, aka strip-sacks."""
+
+    sack_fumbles_lost: pl.Expr = field(
+        default_factory=lambda: pl.col("sack_fumbles_lost")
+    )
+    """Fumbles lost or turnovers after a strip-sack."""
+
+
+col: ColumnsOfInterest = ColumnsOfInterest()
+
+
+DATA_OF_INTEREST: tuple[str, ...] = (
+    "team",
+    "season",
+    "week",
+    "opponent_team",
+    "sacks_suffered",
+    "sack_yards_lost",
+    "sack_fumbles",
+    "sack_fumbles_lost",
+)
+"""Tuple containg data fields of interest."""
 
 TEAMS: dict[str, str] = {
     "ARI": "Arizona Cardinals",
@@ -34,17 +80,8 @@ TEAMS: dict[str, str] = {
     "TEN": "Tennessee Titans",
     "WAS": "Washington Commanders",
 }
+"""Dictionary of all NFL teams. Short as keys long as values."""
 
-DATA_OF_INTEREST: tuple[str, ...] = (
-    "team",
-    "season",
-    "week",
-    "opponent_team",
-    "sacks_suffered",
-    "sack_yards_lost",
-    "sack_fumbles",
-    "sack_fumbles_lost",
-)
 
 STAT_THRESHOLDS: dict[str, int] = {
     "sacks_suffered": 6,
@@ -52,12 +89,4 @@ STAT_THRESHOLDS: dict[str, int] = {
     "sack_fumbles": 2,
     "sack_fumbles_lost": 1,
 }
-
-COL_TEAM: pl.Expr = pl.col("team")
-COL_SEASON: pl.Expr = pl.col("season")
-COL_WEEK: pl.Expr = pl.col("week")
-COL_OPPONENT_TEAM: pl.Expr = pl.col("opponent_team")
-COL_SACKS_SUFFERED: pl.Expr = pl.col("sacks_suffered")
-COL_SACK_YARDS_LOST: pl.Expr = pl.col("sack_yards_lost")
-COL_SACK_FUMBLES: pl.Expr = pl.col("sack_fumbles")
-COL_SACK_FUMBLES_LOST: pl.Expr = pl.col("sack_fumbles_lost")
+"""Dict containing stat threshold for posting."""
