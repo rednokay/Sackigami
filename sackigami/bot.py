@@ -79,9 +79,19 @@ def create_string(game: dict[str, int | str], similar: Optional[dict[str, int]])
     return "\n".join(output)
 
 
-# TODO: Type annotations
-def random_delay(base: int = POST_TIMEOUT, variance: int = int(POST_TIMEOUT * 0.3)):
-    delay = random.uniform(base - variance, base + variance)
+def random_delay(
+    base: int = POST_TIMEOUT, variance: int = int(POST_TIMEOUT * 0.3)
+) -> float:
+    """Creates a random delay time distributed around a given base.
+
+    Args:
+        base (int, optional): Base value to distribute around. Defaults to POST_TIMEOUT.
+        variance (int, optional): Variance around base value. Defaults to int(POST_TIMEOUT * 0.3).
+
+    Returns:
+        float: Delay time.
+    """
+    delay: float = random.uniform(base - variance, base + variance)
     return max(delay, POST_TIMEOUT * 0.45)
 
 
