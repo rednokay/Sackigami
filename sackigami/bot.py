@@ -56,7 +56,7 @@ def create_string(game: dict[str, int | str], similar: Optional[dict[str, int]])
     output.append(
         f"The {team} suffered {sacks_suffered} {plural_s("sack", sacks_suffered)} in their game against the {opponent_team}. This lead to a total of {abs(sack_yards_lost)} {plural_s("yard", sack_yards_lost)} lost."
     )
-    if sacks_suffered == 1:
+    if sack_fumbles == 1:
         output.append(
             f"That sack was a strip-sack, resulting in {sack_fumbles_lost} {plural_s("turnover", sack_fumbles_lost)}."
         )
