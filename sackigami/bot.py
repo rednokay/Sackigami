@@ -5,7 +5,7 @@ from fetch import (
     parse_sack_data,
     find_similar_stat_lines,
 )
-from constants import TEAMS
+from constants import TEAMS, STAT_THRESHOLDS
 import polars as pl
 import json
 import x
@@ -19,6 +19,7 @@ from pathlib import Path
 # TODO: Reduce save file size by only storing identifyind data
 # TODO: Delete/clear save file when week is over
 # TODO: Wrapped at the end of the season
+# TODO: What happens to count if several same results on the same day
 
 OFFLINE_TEST: bool = True
 
@@ -93,11 +94,26 @@ def has_been_posted(game: dict[str, int | str], path: Path = SAVE_PATH) -> bool:
     return game in exiting_games
 
 
-def worth_posting(game: dict[str, int | str], similar: dict[str, int]) -> bool:
+def worth_posting(
+    game: dict[str, int | str], similar: Optional[dict[str, int]]
+) -> bool:
+
     if has_been_posted(game):
         return False
-    if similar["count"] == 0:
+
+    if similar is None:
         return True
+
+    if (
+        (game["sacks_suffered"] >= STAT_THRESHOLDS["sacks_suffered"])
+        or (
+            abs(int(game["sack_yards_lost"])) >= abs(STAT_THRESHOLDS["sack_yards_lost"])
+        )
+        or (game["sack_fumbles"] >= STAT_THRESHOLDS["sack_fumbles"])
+        or (game["sack_fumbles_lost"] >= STAT_THRESHOLDS["sack_fumbles_lost"])
+    ):
+        return True
+
     return False
 
 
@@ -107,16 +123,15 @@ def loop_over_week(week: pl.DataFrame, complete_team_stats: pl.DataFrame) -> Non
         sim: Optional[dict[str, int]] = find_similar_stat_lines(
             complete_team_stats, game
         )
+        print("--------------")
         if sim is None:
-            print(f"Sackigami! {game["team"]} vs. {game["opponent_team"]}")
-            if not OFFLINE_TEST:
-                post(game, sim)
+            post(game, sim)
         else:
-            print(f"No sackigami! {game["team"]} vs. {game["opponent_team"]}")
             if worth_posting(game, sim):
-                print("Game is worth posting ...")
-                if not OFFLINE_TEST:
-                    post(game, sim)
+                post(game, sim)
+    
+    if OFFLINE_TEST:
+        Path(SAVE_PATH).unlink(missing_ok=True) 
 
 
 def main() -> None:
