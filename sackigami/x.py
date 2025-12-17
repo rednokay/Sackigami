@@ -2,6 +2,7 @@ import os
 
 import tweepy
 from dotenv import load_dotenv
+import requests
 
 load_dotenv()
 
@@ -19,6 +20,12 @@ def connect_to_client() -> tweepy.Client:
         access_token=ACCESS_TOKEN,
         access_token_secret=ACCESS_SECRET,
     )
+
+
+def post(text: str) -> requests.Response:
+    client: tweepy.Client = connect_to_client()
+    response = client.create_tweet(text=text)
+    return response
 
 
 if __name__ == "__main__":
