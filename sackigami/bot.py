@@ -1,29 +1,31 @@
+import json
+import random
+import time
+from datetime import date
+from pathlib import Path
+from typing import Optional
+
+import polars as pl
+import x
+from constants import STAT_THRESHOLDS, TEAMS
 from fetch import (
+    find_similar_stat_lines,
+    parse_sack_data,
     retrieve_complete_team_stats,
     retrieve_week,
-    filter_by_threshold,
-    parse_sack_data,
-    find_similar_stat_lines,
 )
-from constants import TEAMS, STAT_THRESHOLDS
-import polars as pl
-import json
-import x
-import time
-from typing import Optional
-from pathlib import Path
-from datetime import date
 
 # TODO: At the end of a week, post all 0 sack teams
 # TODO: Reduce save file size by only storing identifyind data
 # TODO: Delete/clear save file when week is over
 # TODO: Wrapped at the end of the season
 # TODO: What happens to count if several same results on the same day
+# TODO: Handle negative https reponse
 
 OFFLINE_TEST: bool = True
 
 SAVE_PATH: Path = Path("posted.json")
-POST_TIMEOUT = 3
+POST_TIMEOUT = 45
 
 
 def save_game_to_json(game: dict[str, int | str], path: Path = SAVE_PATH) -> None:
@@ -77,19 +79,30 @@ def create_string(game: dict[str, int | str], similar: Optional[dict[str, int]])
     return "\n".join(output)
 
 
+# TODO: Type annotations
+def random_delay(base: int = POST_TIMEOUT, variance: int = int(POST_TIMEOUT * 0.3)):
+    delay = random.uniform(base - variance, base + variance)
+    return max(delay, POST_TIMEOUT * 0.45)
+
+
 def post(
     game: dict[str, int | str],
     similar: Optional[dict[str, int]],
     path: Path = SAVE_PATH,
 ) -> None:
-    save_game_to_json(game, path)
     output: str = create_string(game, similar)
 
     print(output)
 
     if not OFFLINE_TEST:
         x.post(output)
-        time.sleep(POST_TIMEOUT)
+
+    save_game_to_json(game, path)
+
+    if not OFFLINE_TEST:
+        delay = random_delay()
+        print(f"Sleeping for {delay} seconds ...")
+        time.sleep(delay)
 
 
 def has_been_posted(game: dict[str, int | str], path: Path = SAVE_PATH) -> bool:
