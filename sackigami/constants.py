@@ -48,9 +48,9 @@ DATA_OF_INTEREST: tuple[str, ...] = (
 
 STAT_THRESHOLDS: dict[str, int] = {
     "sacks_suffered": 5,
-    "sack_yards_lost": -25,
-    "sack_fumbles": 2,
-    "sack_fumbles_lost": 2,
+    "sack_yards_lost": -30,
+    "sack_fumbles": 1,
+    "sack_fumbles_lost": 1,
 }
 
 COL_TEAM: pl.Expr = pl.col("team")
