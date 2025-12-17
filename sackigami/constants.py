@@ -47,9 +47,9 @@ DATA_OF_INTEREST: tuple[str, ...] = (
 )
 
 STAT_THRESHOLDS: dict[str, int] = {
-    "sacks_suffered": 5,
-    "sack_yards_lost": -30,
-    "sack_fumbles": 1,
+    "sacks_suffered": 6,
+    "sack_yards_lost": -35,
+    "sack_fumbles": 2,
     "sack_fumbles_lost": 1,
 }
 
