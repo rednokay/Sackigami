@@ -43,7 +43,6 @@ def complete_stats() -> pl.DataFrame:
         "BUF",
         "WAS",
     ]
-    opponent_team = random.choices(teams_short, k=7)
     opponent_team: list[str] = [
         "BAL",
         random.choices(teams_short)[0],
@@ -135,7 +134,6 @@ def complete_stats_no_repeats() -> pl.DataFrame:
         "BUF",
         "WAS",
     ]
-    opponent_team = random.choices(teams_short, k=7)
     opponent_team: list[str] = [
         random.choices(teams_short)[0],
         random.choices(teams_short)[0],
@@ -268,7 +266,6 @@ class TestFindSimilarStatLines:
             "sack_fumbles_lost": 2,
         }
 
-        print(f"{relevant_last_week=}")
 
         sim = find_similar_stat_lines(complete_stats, relevant_last_week)
 
