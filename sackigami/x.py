@@ -26,11 +26,3 @@ def post(text: str) -> requests.Response:
     client: tweepy.Client = connect_to_client()
     response = client.create_tweet(text=text)
     return response
-
-
-if __name__ == "__main__":
-    client: tweepy.Client = connect_to_client()
-    response = client.create_tweet(text="Hello World!")
-
-    print(f"{type(response)=}")
-    print("Tweet sent", response)
