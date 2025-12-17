@@ -38,6 +38,10 @@ def load_game_from_json(path: Path = SAVE_PATH) -> list[dict[str, int | str]]:
         return []
 
 
+def plural_s(word: str, num: int) -> str:
+    return word + "s" if num != 1 else word
+
+
 def create_string(game: dict[str, int | str], similar: Optional[dict[str, int]]) -> str:
     output: list[str] = []
     team: str = TEAMS[game["team"]]
@@ -51,7 +55,7 @@ def create_string(game: dict[str, int | str], similar: Optional[dict[str, int]])
         f"The {team} suffered {sacks_suffered} sacks in their game against the {opponent_team}. This lead to a total of {abs(sack_yards_lost)} yards lost."
     )
     output.append(
-        f"{sack_fumbles} of those sacks were strip-sacks, resulting in {sack_fumbles_lost} turnovers."
+        f"{sack_fumbles} of those sacks were strip-sacks, resulting in {sack_fumbles_lost} {plural_s("turnover", sack_fumbles_lost)}."
     )
 
     if similar is None:
@@ -61,13 +65,17 @@ def create_string(game: dict[str, int | str], similar: Optional[dict[str, int]])
         output.insert(0, "No Sackigami!\n")
         plural_time: str = "times" if similar["count"] != 1 else "time"
         output.append(
-            f"\nThis has happened {similar["count"]} {plural_time} before. Most recently in week {similar["week"]} of the {similar["season"]} season."
+            f"\nThis has happened {similar["count"]} {plural_s("time", similar["count"])} before. Most recently in week {similar["week"]} of the {similar["season"]} season."
         )
 
     return "\n".join(output)
 
 
-def post(game: dict[str, int | str], similar: Optional[dict[str, int]], path: Path = SAVE_PATH) -> None:
+def post(
+    game: dict[str, int | str],
+    similar: Optional[dict[str, int]],
+    path: Path = SAVE_PATH,
+) -> None:
     save_game_to_json(game, path)
     output: str = create_string(game, similar)
 
