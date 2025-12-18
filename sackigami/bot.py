@@ -6,14 +6,15 @@ from pathlib import Path
 from typing import Optional
 
 import polars as pl
+
 import sackigami.x as x
 from sackigami.constants import STAT_THRESHOLDS, TEAMS, col
 from sackigami.fetch import (
     find_similar_stat_lines,
+    parse_last_gameday,
     parse_sack_data,
     retrieve_complete_team_stats,
     retrieve_week,
-    parse_last_gameday,
 )
 
 # TODO: Reduce save file size by only storing identifyind data
@@ -95,7 +96,7 @@ def create_string(game: dict[str, int | str], similar: Optional[dict[str, int]])
     sack_fumbles_lost: int = int(game["sack_fumbles_lost"])
 
     output.append(
-        f"The {team} suffered {sacks_suffered} {plural_s("sack", sacks_suffered)} in their game against the {opponent_team}. This lead to a total of {abs(sack_yards_lost)} {plural_s("yard", sack_yards_lost)} lost."
+        f"The {team} suffered {sacks_suffered} {plural_s("sack", sacks_suffered)} in their game against the {opponent_team}. This led to a total of {abs(sack_yards_lost)} {plural_s("yard", sack_yards_lost)} lost."
     )
     if sack_fumbles == 1:
         output.append(

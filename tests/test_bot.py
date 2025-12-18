@@ -1,16 +1,16 @@
-import pytest
 import polars as pl
+import pytest
 from bot import (
-    save_game_to_json,
-    load_game_from_json,
     create_string,
     has_been_posted,
-    post,
+    load_game_from_json,
     loop_over_week,
     no_sack_average,
+    post,
+    save_game_to_json,
 )
 from fetch import retrieve_week
-from test_fetch import complete_stats_no_repeats, complete_stats
+from test_fetch import complete_stats, complete_stats_no_repeats
 
 # TODO: Test worth_posting, loop over week
 
@@ -67,7 +67,7 @@ class TestCreateString:
         expected: str = (
             "No Sackigami!\n\n"
             "The Washington Commanders suffered 7 sacks in their game against the Baltimore Ravens. "
-            "This lead to a total of 45 yards lost.\n"
+            "This led to a total of 45 yards lost.\n"
             "3 of those sacks were strip-sacks, resulting in 2 turnovers.\n\n"
             "This has happened 5 times before. Most recently in week 12 of the 2002 season."
         )
@@ -89,7 +89,7 @@ class TestCreateString:
         expected: str = (
             "No Sackigami!\n\n"
             "The Washington Commanders suffered 1 sack in their game against the Baltimore Ravens. "
-            "This lead to a total of 1 yard lost.\n"
+            "This led to a total of 1 yard lost.\n"
             "That sack was a strip-sack, resulting in 1 turnover.\n\n"
             "This has happened 1 time before. Most recently in week 12 of the 2002 season."
         )
@@ -102,7 +102,7 @@ class TestCreateString:
         expected: str = (
             "Sackigami!\n\n"
             "The Washington Commanders suffered 7 sacks in their game against the Baltimore Ravens. "
-            "This lead to a total of 45 yards lost.\n"
+            "This led to a total of 45 yards lost.\n"
             "3 of those sacks were strip-sacks, resulting in 2 turnovers.\n\n"
             "This has never happened before."
         )
