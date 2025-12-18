@@ -135,6 +135,13 @@ def random_delay(
     return max(delay, POST_TIMEOUT * 0.45)
 
 
+def apply_delay():
+    """Apply a random delay."""
+    delay = random_delay()
+    print(f"Sleeping for {delay} seconds ...")
+    time.sleep(delay)
+
+
 def post(
     game: dict[str, int | str],
     similar: Optional[dict[str, int]],
@@ -157,9 +164,7 @@ def post(
     save_game_to_json(game, path)
 
     if not OFFLINE_TEST:
-        delay = random_delay()
-        print(f"Sleeping for {delay} seconds ...")
-        time.sleep(delay)
+        apply_delay()
 
 
 def has_been_posted(game: dict[str, int | str], path: Path = SAVE_PATH) -> bool:
@@ -278,9 +283,7 @@ def loop_over_no_sacks(week: pl.DataFrame, complete_team_stats: pl.DataFrame) ->
     if not OFFLINE_TEST:
         x.post(output)
 
-        delay = random_delay()
-        print(f"Sleeping for {delay} seconds ...")
-        time.sleep(delay)
+        apply_delay()
 
 
 def create_string_no_sacks(
