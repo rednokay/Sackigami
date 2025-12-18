@@ -7,6 +7,7 @@ from bot import (
     has_been_posted,
     post,
     loop_over_week,
+    no_sack_average,
 )
 from fetch import retrieve_week
 from test_fetch import complete_stats_no_repeats, complete_stats
@@ -132,3 +133,23 @@ class TestLoopOverWeek:
 
         assert "Sackigami!" in captured.out
         assert "No Sackigami!" not in captured.out
+
+
+def test_no_sack_average():
+    length: int = 17
+    seasons: list[int] = [2025 for _ in range(length * 2)]
+    week: list[int] = [int(i / 2) for i in range(2, length * 2 + 2)]
+    sacks: list[int] = [0 for _ in range(length * 2)]
+
+    complete_teams_stats = pl.DataFrame(
+        {
+            "season": seasons,
+            "week": week,
+            "sacks_suffered": sacks,
+        }
+    )
+
+    res: float = no_sack_average(complete_teams_stats)
+    expected: float = 2.0
+
+    assert res == expected

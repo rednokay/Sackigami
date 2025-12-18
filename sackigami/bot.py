@@ -7,12 +7,13 @@ from typing import Optional
 
 import polars as pl
 import x
-from constants import STAT_THRESHOLDS, TEAMS
+from constants import STAT_THRESHOLDS, TEAMS, col
 from fetch import (
     find_similar_stat_lines,
     parse_sack_data,
     retrieve_complete_team_stats,
     retrieve_week,
+    parse_last_gameday,
 )
 
 # TODO: At the end of a week, post all 0 sack teams
@@ -63,7 +64,7 @@ def load_game_from_json(path: Path = SAVE_PATH) -> list[dict[str, int | str]]:
         return []
 
 
-def plural_s(word: str, num: int) -> str:
+def plural_s(word: str, num: int | float) -> str:
     """Pluralize words that are pularilzed with an appending 's' when needing the plural.
 
     Args:
@@ -223,13 +224,13 @@ def worth_posting(
 
 
 def loop_over_week(week: pl.DataFrame, complete_team_stats: pl.DataFrame) -> None:
-    """Iterates over a game day, prases the data and post Sackigami! data.
+    """Iterates over a game day, parses the data and post Sackigami! data.
 
     Args:
         week (pl.DataFrame): Game stats of the week,
         complete_team_stats (pl.DataFrame): All stats.
     """
-    week_sack_data = parse_sack_data(week)
+    week_sack_data: pl.DataFrame = parse_sack_data(week)
     for game in week_sack_data.iter_rows(named=True):
         sim: Optional[dict[str, int]] = find_similar_stat_lines(
             complete_team_stats, game
@@ -243,3 +244,68 @@ def loop_over_week(week: pl.DataFrame, complete_team_stats: pl.DataFrame) -> Non
 
     if OFFLINE_TEST:
         Path(SAVE_PATH).unlink(missing_ok=True)
+
+
+def no_sack_average(complete_team_stats: pl.DataFrame) -> float:
+    game_day: dict[str, int] = parse_last_gameday(complete_team_stats)
+
+    this_season_no_sacks: pl.DataFrame = complete_team_stats.filter(
+        (col.season == game_day["season"]) & (col.sacks_suffered == 0)
+    )
+    amount: int = this_season_no_sacks.height
+
+    return amount / game_day["week"]
+
+
+def loop_over_no_sacks(week: pl.DataFrame, complete_team_stats: pl.DataFrame) -> None:
+    """Iterates over a game day, parses the data and post teams that did not surrender a sack.
+
+    Args:
+        week (pl.DataFrame): Game stats of the week,
+        complete_team_stats (pl.DataFrame): All stats.
+    """
+    teams_no_sacks: list[str] = []
+
+    week_sack_data: pl.DataFrame = parse_sack_data(week)
+    for game in week_sack_data.iter_rows(named=True):
+        if game["sacks_suffered"] == 0:
+            teams_no_sacks.append(game["team"])
+
+    output: str = create_string_no_sacks(teams_no_sacks, complete_team_stats)
+
+    print(output)
+
+    if not OFFLINE_TEST:
+        x.post(output)
+
+        delay = random_delay()
+        print(f"Sleeping for {delay} seconds ...")
+        time.sleep(delay)
+
+
+def create_string_no_sacks(
+    teams_no_sacks: list[str], complete_team_stats: pl.DataFrame
+) -> str:
+    """Creates a string for teams which did not surrender a sack in a week.
+
+    Args:
+        teams_no_sacks (list[str]): List of teams that did not get sacked.
+        complete_team_stats (pl.DataFrame): All stats.
+
+    Returns:
+        str: String to be posted.
+    """
+    output: list[str] = []
+
+    output.append(
+        "Congratulations! The following teams did not surrender a sack this week:\n"
+    )
+
+    for team in teams_no_sacks:
+        output.append(TEAMS[team])
+    avg: float = no_sack_average(complete_team_stats)
+    output.append(
+        f"\nThis season, on average {avg:.2f} {plural_s("team", round(avg, 2))} do not surrender a sack per game day."
+    )
+
+    return "\n".join(output)
