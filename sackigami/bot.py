@@ -6,7 +6,7 @@ from pathlib import Path
 from typing import Optional
 
 import polars as pl
-import sackigami.x
+import sackigami.x as x
 from sackigami.constants import STAT_THRESHOLDS, TEAMS, col
 from sackigami.fetch import (
     find_similar_stat_lines,
@@ -25,7 +25,7 @@ from sackigami.fetch import (
 SAVE_PATH: Path = Path("posted.json")
 """Default save path for JSON game data."""
 
-OFFLINE_TEST: bool = True or not Path(".env").exits()
+OFFLINE_TEST: bool = True or not Path(".env").exists()
 """Flag to disable and enable posting X and using the X API.
 
 For True the X API will not be called.
