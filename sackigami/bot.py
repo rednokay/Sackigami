@@ -282,8 +282,6 @@ def loop_over_no_sacks(week: pl.DataFrame, complete_team_stats: pl.DataFrame) ->
     if not OFFLINE_TEST:
         x.post(output)
 
-        apply_delay()
-
 
 def create_string_no_sacks(
     teams_no_sacks: list[str], complete_team_stats: pl.DataFrame
