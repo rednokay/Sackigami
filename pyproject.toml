@@ -32,7 +32,8 @@ dependencies = [
     "tweepy (==4.16.0)",
     "typing-inspection (==0.4.2)",
     "typing-extensions (==4.15.0)",
-    "urllib3 (==2.6.2)"
+    "urllib3 (==2.6.2)",
+    "typer (>=0.20.0,<0.21.0)"
 ]
 
 [project.scripts]
