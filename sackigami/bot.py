@@ -223,7 +223,7 @@ def worth_posting(
 
 
 def loop_over_week(week: pl.DataFrame, complete_team_stats: pl.DataFrame) -> None:
-    """Iterates over a game day, prases the data and posts data.
+    """Iterates over a game day, prases the data and post Sackigami! data.
 
     Args:
         week (pl.DataFrame): Game stats of the week,
@@ -243,18 +243,3 @@ def loop_over_week(week: pl.DataFrame, complete_team_stats: pl.DataFrame) -> Non
 
     if OFFLINE_TEST:
         Path(SAVE_PATH).unlink(missing_ok=True)
-
-
-def main() -> None:
-    print("Getting game data ...")
-    complete_stats: pl.DataFrame = retrieve_complete_team_stats()
-
-    print("Parse latest week and filter for relevancy ...")
-    last_week: pl.DataFrame = retrieve_week(complete_stats)
-
-    print("Looping over games")
-    loop_over_week(last_week, complete_stats)
-
-
-if __name__ == "__main__":
-    main()
