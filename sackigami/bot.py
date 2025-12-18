@@ -16,21 +16,20 @@ from fetch import (
     parse_last_gameday,
 )
 
-# TODO: At the end of a week, post all 0 sack teams
 # TODO: Reduce save file size by only storing identifyind data
 # TODO: Delete/clear save file when week is over
 # TODO: Wrapped at the end of the season
 # TODO: What happens to count if several same results on the same day
 # TODO: Handle negative https reponse
 
-OFFLINE_TEST: bool = True
+SAVE_PATH: Path = Path("posted.json")
+"""Default save path for JSON game data."""
+
+OFFLINE_TEST: bool = True or not Path(".env").exits()
 """Flag to disable and enable posting X and using the X API.
 
 For True the X API will not be called.
 """
-
-SAVE_PATH: Path = Path("posted.json")
-"""Default save path for JSON game data."""
 
 POST_TIMEOUT = 45
 """Base timeout between seperate X posts."""
