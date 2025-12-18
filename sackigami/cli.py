@@ -1,6 +1,6 @@
 import typer
 import polars as pl
-from bot import (
+from sackigami.bot import (
     retrieve_complete_team_stats,
     retrieve_week,
     loop_over_week,
@@ -45,5 +45,9 @@ def nosacks() -> None:
     loop_over_no_sacks(last_week, complete_stats)
 
 
-if __name__ == "__main__":
+def main() -> None:
     app()
+
+
+if __name__ == "__main__":
+    main()

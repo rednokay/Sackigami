@@ -3,7 +3,7 @@ from typing import Optional
 import nflreadpy as nfl
 import polars as pl
 
-from constants import (
+from sackigami.constants import (
     STAT_THRESHOLDS,
     DATA_OF_INTEREST,
     TEAMS,

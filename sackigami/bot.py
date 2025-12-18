@@ -6,9 +6,9 @@ from pathlib import Path
 from typing import Optional
 
 import polars as pl
-import x
-from constants import STAT_THRESHOLDS, TEAMS, col
-from fetch import (
+import sackigami.x
+from sackigami.constants import STAT_THRESHOLDS, TEAMS, col
+from sackigami.fetch import (
     find_similar_stat_lines,
     parse_sack_data,
     retrieve_complete_team_stats,

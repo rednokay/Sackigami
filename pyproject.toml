@@ -1,0 +1,51 @@
+[project]
+name = "sackigami"
+version = "0.1.0"
+description = "Posting interesting NFL sack stat-lines."
+authors = [
+    {name = "rednokay",email = "207755534+rednokay@users.noreply.github.com"}
+]
+license = "MIT"
+readme = "README.md"
+requires-python = ">=3.12"
+dependencies = [
+    "annotated-types (==0.7.0)",
+    "certifi (==2025.11.12)",
+    "charset-normalizer (==3.4.4)",
+    "idna (==3.11)",
+    "iniconfig (==2.3.0)",
+    "nflreadpy (==0.1.5)",
+    "oauthlib (==3.3.1)",
+    "packaging (==25.0)",
+    "platformdirs (==4.5.1)",
+    "pluggy (==1.6.0)",
+    "polars (==1.36.1)",
+    "polars-runtime-32 (==1.36.1)",
+    "pydantic (==2.12.5)",
+    "pydantic-settings (==2.12.0)",
+    "pydantic-core (==2.41.5)",
+    "pygments (==2.19.2)",
+    "python-dotenv (==1.2.1)",
+    "requests (==2.32.5)",
+    "requests-oauthlib (==2.0.0)",
+    "tqdm (==4.67.1)",
+    "tweepy (==4.16.0)",
+    "typing-inspection (==0.4.2)",
+    "typing-extensions (==4.15.0)",
+    "urllib3 (==2.6.2)"
+]
+
+[project.scripts]
+sackigami = "sackigami.cli:main"
+
+[dependency-groups]
+dev = [
+    "pytest (>=9.0.2,<10.0.0)",
+    "black (>=25.12.0,<26.0.0)"
+]
+
+
+[build-system]
+requires = ["poetry-core>=2.0.0,<3.0.0"]
+build-backend = "poetry.core.masonry.api"
+
