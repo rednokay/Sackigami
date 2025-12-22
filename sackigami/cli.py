@@ -10,7 +10,7 @@ from sackigami.bot import (
 )
 from sackigami.fetch import (
     retrieve_complete_team_stats,
-    retrieve_week,
+    retrieve_weekly_stats,
 )
 
 APP_KWARGS: dict[str, str | bool] = {
@@ -31,7 +31,7 @@ def gbg() -> None:
     complete_stats: pl.DataFrame = retrieve_complete_team_stats()
 
     print("Parse latest week and filter for relevancy ...")
-    last_week: pl.DataFrame = retrieve_week(complete_stats)
+    last_week: pl.DataFrame = retrieve_weekly_stats(complete_stats)
 
     print("Looping over games")
     loop_over_week(last_week, complete_stats)
@@ -45,7 +45,7 @@ def nosacks() -> None:
     complete_stats: pl.DataFrame = retrieve_complete_team_stats()
 
     print("Parse latest week and filter for relevancy ...")
-    last_week: pl.DataFrame = retrieve_week(complete_stats)
+    last_week: pl.DataFrame = retrieve_weekly_stats(complete_stats)
 
     print("Looping over games")
     loop_over_no_sacks(last_week, complete_stats)
