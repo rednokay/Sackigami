@@ -299,6 +299,17 @@ def loop_over_week(week: pl.DataFrame, complete_team_stats: pl.DataFrame) -> Non
 
 
 def no_sack_average(complete_team_stats: pl.DataFrame) -> float:
+    """Calculates the 0 sacks averages per game day.
+
+    Calculates the average of teams surrendering no sacks during a game over
+    the whole season.
+
+    Args:
+        complete_team_stats (pl.DataFrame): All stats.
+
+    Returns:
+        float: The 0 sack average.
+    """
     game_day: dict[str, int] = parse_last_gameday(complete_team_stats)
 
     this_season_no_sacks: pl.DataFrame = complete_team_stats.filter(
