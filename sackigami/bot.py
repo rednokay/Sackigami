@@ -299,7 +299,8 @@ def loop_over_week(week: pl.DataFrame, complete_team_stats: pl.DataFrame) -> Non
         )
         print("--------------")
         if sim is None:
-            post(game, sim)
+            if not has_been_posted(game):
+                post(game, sim)
         else:
             if worth_posting(game, sim):
                 post(game, sim)
