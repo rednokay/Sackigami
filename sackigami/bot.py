@@ -9,7 +9,7 @@ from typing import Optional
 import polars as pl
 
 import sackigami.x as x
-from sackigami.constants import STAT_THRESHOLDS, TEAMS, col
+from sackigami.constants import COL, STAT_THRESHOLDS, TEAMS
 from sackigami.fetch import (
     find_similar_stat_lines,
     parse_last_gameday,
@@ -313,7 +313,7 @@ def no_sack_average(complete_team_stats: pl.DataFrame) -> float:
     game_day: dict[str, int] = parse_last_gameday(complete_team_stats)
 
     this_season_no_sacks: pl.DataFrame = complete_team_stats.filter(
-        (col.season == game_day["season"]) & (col.sacks_suffered == 0)
+        (COL.season == game_day["season"]) & (COL.sacks_suffered == 0)
     )
     amount: int = this_season_no_sacks.height
 

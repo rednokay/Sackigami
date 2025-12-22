@@ -1,5 +1,6 @@
-import polars as pl
 from dataclasses import dataclass, field
+
+import polars as pl
 
 
 @dataclass(frozen=True)
@@ -31,7 +32,7 @@ class ColumnsOfInterest:
     """Fumbles lost or turnovers after a strip-sack."""
 
 
-col: ColumnsOfInterest = ColumnsOfInterest()
+COL: ColumnsOfInterest = ColumnsOfInterest()
 
 
 DATA_OF_INTEREST: tuple[str, ...] = (
