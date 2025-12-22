@@ -9,7 +9,7 @@ from typing import Optional
 import polars as pl
 
 import sackigami.x as x
-from sackigami.constants import COL, STAT_THRESHOLDS, TEAMS
+from sackigami.constants import BOT_CONF, COL, STAT_THRESHOLDS, TEAMS
 from sackigami.fetch import (
     find_similar_stat_lines,
     parse_last_gameday,
@@ -22,23 +22,11 @@ from sackigami.fetch import (
 # TODO: What happens to count if several same results on the same day
 # TODO: Handle negative https reponse
 
-OFFLINE_TEST: bool = True
-"""Run without using the X API."""
-
-SAVE_PATH: Path = Path("posted.json")
-"""Default save path for JSON game data."""
-
-SAVE_PATH_OFFLINE: Path = Path("posted_offline.json")
-"""Default save path for JSON game data."""
-
-POST_TIMEOUT = 45
-"""Base timeout between seperate X posts."""
-
 
 def offline_test() -> bool:
     """Conditionally run without using the X api.
 
-    The execution will be an offline test if either the OFFLINE_TEST
+    The execution will be an offline test if either the BOT_CONF.offline_test
     flag is True, there is no .env (which contains the API creds) or
     it is a Pytest test run.
 
@@ -46,7 +34,7 @@ def offline_test() -> bool:
         bool: Run offline test.
     """
     return (
-        OFFLINE_TEST
+        BOT_CONF.offline_test
         or not Path(".env").exists()
         or bool(os.environ.get("PYTEST_CURRENT_TEST"))
     )
@@ -73,15 +61,15 @@ def set_correct_path(path: Optional[Path], fallback: Path) -> Path:
 
 def save_game_to_json(
     game: dict[str, int | str],
-    path: Optional[Path] = SAVE_PATH,
-    fallback: Path = SAVE_PATH_OFFLINE,
+    path: Optional[Path] = BOT_CONF.save_path,
+    fallback: Path = BOT_CONF.save_path_offline,
 ) -> None:
     """Saves game data to a file in JSON format.
 
     Args:
         game (dict[str, int  |  str]): Dict that contains game data.
-        path (Optional[Path], optional): Path where to save the JSON data. Defaults to SAVE_PATH.
-        fallback (Path, optional): Path where to save the JSON data when offline testing. Defaults to SAVE_PATH_OFFLINE.
+        path (Optional[Path], optional): Path where to save the JSON data. Defaults to BOT_CONF.save_path.
+        fallback (Path, optional): Path where to save the JSON data when offline testing. Defaults to BOT_CONF.save_path_offline.
     """
     path = set_correct_path(path, fallback)
 
@@ -92,13 +80,14 @@ def save_game_to_json(
 
 
 def load_game_from_json(
-    path: Optional[Path] = SAVE_PATH, fallback: Path = SAVE_PATH_OFFLINE
+    path: Optional[Path] = BOT_CONF.save_path,
+    fallback: Path = BOT_CONF.save_path_offline,
 ) -> list[dict[str, int | str]]:
     """Load game data from a JSON file.
 
     Args:
-        path (Optional[Path], optional): Path to the saved gama data JSON file. Defaults to SAVE_PATH.
-        fallback (Path, optional): Path where to the saved JSON data when offline testing. Defaults to SAVE_PATH_OFFLINE.
+        path (Optional[Path], optional): Path to the saved gama data JSON file. Defaults to BOT_CONF.save_path.
+        fallback (Path, optional): Path where to the saved JSON data when offline testing. Defaults to BOT_CONF.save_path_offline.
 
     Returns:
         list[dict[str, int | str]]: List with all saved game data.
@@ -170,19 +159,19 @@ def create_string(game: dict[str, int | str], similar: Optional[dict[str, int]])
 
 
 def random_delay(
-    base: int = POST_TIMEOUT, variance: int = int(POST_TIMEOUT * 0.3)
+    base: int = BOT_CONF.post_timeout, variance: int = int(BOT_CONF.post_timeout * 0.3)
 ) -> float:
     """Creates a random delay time distributed around a given base.
 
     Args:
-        base (int, optional): Base value to distribute around. Defaults to POST_TIMEOUT.
-        variance (int, optional): Variance around base value. Defaults to int(POST_TIMEOUT * 0.3).
+        base (int, optional): Base value to distribute around. Defaults to BOT_CONF.post_timeout.
+        variance (int, optional): Variance around base value. Defaults to int(BOT_CONF.post_timeout * 0.3).
 
     Returns:
         float: Delay time.
     """
     delay: float = random.uniform(base - variance, base + variance)
-    return max(delay, POST_TIMEOUT * 0.45)
+    return max(delay, BOT_CONF.post_timeout * 0.45)
 
 
 def apply_delay():
@@ -195,16 +184,16 @@ def apply_delay():
 def post(
     game: dict[str, int | str],
     similar: Optional[dict[str, int]],
-    path: Optional[Path] = SAVE_PATH,
-    fallback: Path = SAVE_PATH_OFFLINE,
+    path: Optional[Path] = BOT_CONF.save_path,
+    fallback: Path = BOT_CONF.save_path_offline,
 ) -> None:
     """Posts a game to stdout and X.
 
     Args:
         game (dict[str, int  |  str]): Dict that contains game data.
         similar (Optional[dict[str, int]]): Dict that contains data how often the same game stats happened before. None if never.
-        path (Optional[Path], optional): Path where to save games of completed posts. Defaults to SAVE_PATH.
-        fallback (Path, optional): Path where to save save games of completed posts when offline testing. Defaults to SAVE_PATH_OFFLINE.
+        path (Optional[Path], optional): Path where to save games of completed posts. Defaults to BOT_CONF.save_path.
+        fallback (Path, optional): Path where to save save games of completed posts when offline testing. Defaults to BOT_CONF.save_path_offline.
     """
     output: str = create_string(game, similar)
 
@@ -221,15 +210,15 @@ def post(
 
 def has_been_posted(
     game: dict[str, int | str],
-    path: Optional[Path] = SAVE_PATH,
-    fallback: Path = SAVE_PATH_OFFLINE,
+    path: Optional[Path] = BOT_CONF.save_path,
+    fallback: Path = BOT_CONF.save_path_offline,
 ) -> bool:
     """Checks whether a game has already been posted.
 
     Args:
         game (dict[str, int  |  str]): Dict that contains game data.
-        path (Optional[Path], optional): Path where to look for saved games in JSON format. Defaults to SAVE_PATH.
-        fallback (Path, optional): Path where to look for saved games in JSON format when offline testing. Defaults to SAVE_PATH_OFFLINE.
+        path (Optional[Path], optional): Path where to look for saved games in JSON format. Defaults to BOT_CONF.save_path.
+        fallback (Path, optional): Path where to look for saved games in JSON format when offline testing. Defaults to BOT_CONF.save_path_offline.
 
     Returns:
         bool: True if game has been posted, False if not.
@@ -306,7 +295,7 @@ def loop_over_week(week: pl.DataFrame, complete_team_stats: pl.DataFrame) -> Non
                 post(game, sim)
 
     if offline_test():
-        Path(SAVE_PATH_OFFLINE).unlink(missing_ok=True)
+        Path(BOT_CONF.save_path_offline).unlink(missing_ok=True)
 
 
 def no_sack_average(complete_team_stats: pl.DataFrame) -> float:

@@ -1,4 +1,5 @@
 from dataclasses import dataclass, field
+from pathlib import Path
 
 import polars as pl
 
@@ -32,7 +33,24 @@ class ColumnsOfInterest:
     """Fumbles lost or turnovers after a strip-sack."""
 
 
+@dataclass(frozen=True)
+class BotConfig:
+    offline_test: bool = True
+    """Run without using the X API."""
+
+    save_path: Path = Path("posted.json")
+    """Default save path for JSON game data."""
+
+    save_path_offline: Path = Path("posted_offline.json")
+    """Default save path for JSON game data for offline runs."""
+
+    post_timeout: int = 45
+    """Base timeout between seperate X posts."""
+
+
 COL: ColumnsOfInterest = ColumnsOfInterest()
+
+BOT_CONF: BotConfig = BotConfig()
 
 
 DATA_OF_INTEREST: tuple[str, ...] = (
