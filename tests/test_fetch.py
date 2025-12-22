@@ -7,6 +7,7 @@ from fetch import (
     find_similar_stat_lines,
     retrieve_weekly_stats,
     GameDay,
+    SimilarStatLines,
 )
 from constants import TEAMS
 
@@ -251,7 +252,7 @@ class TestFindSimilarStatLines:
         sim = find_similar_stat_lines(complete_stats, relevant_last_week)
 
         assert sim is not None
-        assert list(sim.values()) == [3, 16, 2025]
+        assert sim == SimilarStatLines(GameDay(season=2025, week=16), 3)
 
     def test_no_exiting_similar_stat_line(self, complete_stats_no_repeats):
         relevant_last_week = pl.DataFrame(
@@ -284,7 +285,7 @@ class TestFindSimilarStatLines:
         sim = find_similar_stat_lines(complete_stats, relevant_last_week)
 
         assert sim is not None
-        assert list(sim.values()) == [3, 16, 2025]
+        assert sim == SimilarStatLines(GameDay(season=2025, week=16), 3)
 
     def test_no_exiting_similar_stat_line_dict(self, complete_stats_no_repeats):
         relevant_last_week = {

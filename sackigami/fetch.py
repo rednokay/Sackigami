@@ -17,6 +17,12 @@ class GameDay:
     week: int
 
 
+@dataclass
+class SimilarStatLines:
+    last_gameday: GameDay
+    count: int
+
+
 def retrieve_complete_team_stats() -> pl.DataFrame:
     """Download complete teams stats of all available seasons.
 
@@ -52,7 +58,7 @@ def parse_sack_data(weekly_team_stats: pl.DataFrame) -> pl.DataFrame:
 
 def find_similar_stat_lines(
     complete_team_stats: pl.DataFrame, stat_line: pl.DataFrame | dict[str, str | int]
-) -> Optional[dict[str, int]]:
+) -> Optional[SimilarStatLines]:
 
     sacks_suffered: Optional[int] = None
     sack_yards_lost: Optional[int] = None
@@ -101,8 +107,4 @@ def find_similar_stat_lines(
     last_week: int = similar_lines.select(COL.week.last()).item()
     last_season: int = similar_lines.select(COL.season.last()).item()
 
-    return {
-        "count": count,
-        "week": last_week,
-        "season": last_season,
-    }
+    return SimilarStatLines(GameDay(last_season, last_week), count)
