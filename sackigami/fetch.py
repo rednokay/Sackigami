@@ -1,4 +1,5 @@
 from typing import Optional
+from dataclasses import dataclass
 
 import nflreadpy as nfl
 import polars as pl
@@ -10,42 +11,43 @@ from sackigami.constants import (
 )
 
 
+@dataclass
+class GameDay:
+    season: int
+    week: int
+
+
 def retrieve_complete_team_stats() -> pl.DataFrame:
+    """Download complete teams stats of all available seasons.
+
+    Returns:
+        pl.DataFrame: Complete team stats.
+    """
     return nfl.load_team_stats(seasons=True, summary_level="week")
 
 
-def parse_last_gameday(complete_team_stats: pl.DataFrame) -> dict[str, int]:
+def parse_last_gameday(complete_team_stats: pl.DataFrame) -> GameDay:
     last_season: int = complete_team_stats.select(COL.season.last()).item()
     last_week: int = complete_team_stats.select(COL.week.last()).item()
-    return {
-        "season": last_season,
-        "week": last_week,
-    }
+    return GameDay(last_season, last_week)
 
 
-def retrieve_week(
-    complete_team_stats: pl.DataFrame, week: Optional[dict[str, int]] = None
+def retrieve_weekly_stats(
+    complete_team_stats: pl.DataFrame, gameday: Optional[GameDay] = None
 ) -> pl.DataFrame:
-    gameday: dict[str, int] = (
-        parse_last_gameday(complete_team_stats) if week is None else week
+
+    gameday_conditional: GameDay = (
+        parse_last_gameday(complete_team_stats) if gameday is None else gameday
     )
 
     return complete_team_stats.filter(
-        (COL.season == gameday["season"]) & (COL.week == gameday["week"])
+        (COL.season == gameday_conditional.season)
+        & (COL.week == gameday_conditional.week)
     )
 
 
-def parse_sack_data(weekly_stat_lines: pl.DataFrame) -> pl.DataFrame:
-    return weekly_stat_lines.select([data for data in DATA_OF_INTEREST])
-
-
-def filter_by_threshold(stat_lines: pl.DataFrame) -> pl.DataFrame:
-    return stat_lines.filter(
-        (COL.sacks_suffered >= STAT_THRESHOLDS["sacks_suffered"])
-        | (COL.sack_yards_lost <= STAT_THRESHOLDS["sack_yards_lost"])
-        | (COL.sack_fumbles >= STAT_THRESHOLDS["sack_fumbles"])
-        | (COL.sack_fumbles_lost >= STAT_THRESHOLDS["sack_fumbles_lost"])
-    )
+def parse_sack_data(weekly_team_stats: pl.DataFrame) -> pl.DataFrame:
+    return weekly_team_stats.select([data for data in DATA_OF_INTEREST])
 
 
 def find_similar_stat_lines(

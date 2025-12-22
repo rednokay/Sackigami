@@ -4,9 +4,9 @@ import polars as pl
 import pytest
 
 from fetch import (
-    filter_by_threshold,
     find_similar_stat_lines,
-    retrieve_week,
+    retrieve_weekly_stats,
+    GameDay,
 )
 from constants import TEAMS
 
@@ -194,9 +194,9 @@ def complete_stats_no_repeats() -> pl.DataFrame:
     )
 
 
-class TestRetrieveWeek:
-    def test_retrieve_week_no_gameday_given(self, complete_stats):
-        last_week = retrieve_week(complete_stats)
+class TestRetrieveWeeklyStats:
+    def test_retrieve_weekly_stats_no_gameday_given(self, complete_stats):
+        last_week = retrieve_weekly_stats(complete_stats)
 
         expected = pl.DataFrame(
             {
@@ -213,13 +213,10 @@ class TestRetrieveWeek:
 
         assert last_week.to_dicts() == expected.to_dicts()
 
-    def test_retrieve_week_with_gameday(self, complete_stats):
-        gameday: dict[str, int] = {
-            "week": 5,
-            "season": 1999,
-        }
+    def test_retrieve_weekly_stats_with_gameday(self, complete_stats):
+        gameday = GameDay(season=1999, week=5)
 
-        week = retrieve_week(complete_stats, week=gameday)
+        week = retrieve_weekly_stats(complete_stats, gameday)
 
         expected = pl.DataFrame(
             {
@@ -239,7 +236,17 @@ class TestRetrieveWeek:
 
 class TestFindSimilarStatLines:
     def test_existing_similar_stat_linse(self, complete_stats):
-        relevant_last_week = filter_by_threshold(retrieve_week(complete_stats))
+        relevant_last_week = pl.DataFrame(
+            {
+                "season": 2025,
+                "week": 16,
+                "team": "WAS",
+                "sacks_suffered": 7,
+                "sack_yards_lost": -45,
+                "sack_fumbles": 3,
+                "sack_fumbles_lost": 2,
+            }
+        )
 
         sim = find_similar_stat_lines(complete_stats, relevant_last_week)
 
@@ -247,8 +254,16 @@ class TestFindSimilarStatLines:
         assert list(sim.values()) == [3, 16, 2025]
 
     def test_no_exiting_similar_stat_line(self, complete_stats_no_repeats):
-        relevant_last_week = filter_by_threshold(
-            retrieve_week(complete_stats_no_repeats)
+        relevant_last_week = pl.DataFrame(
+            {
+                "season": 2025,
+                "week": 16,
+                "team": "WAS",
+                "sacks_suffered": 7,
+                "sack_yards_lost": -45,
+                "sack_fumbles": 3,
+                "sack_fumbles_lost": 2,
+            }
         )
 
         sim = find_similar_stat_lines(complete_stats_no_repeats, relevant_last_week)
@@ -265,7 +280,6 @@ class TestFindSimilarStatLines:
             "sack_fumbles": 3,
             "sack_fumbles_lost": 2,
         }
-
 
         sim = find_similar_stat_lines(complete_stats, relevant_last_week)
 
