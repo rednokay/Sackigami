@@ -16,8 +16,6 @@ from bot import (
 from fetch import retrieve_week
 from test_fetch import complete_stats, complete_stats_no_repeats
 
-from sackigami.bot import OFFLINE_TEST
-
 # TODO: Test worth_posting, loop over week
 
 

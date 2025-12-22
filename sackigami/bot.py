@@ -1,4 +1,5 @@
 import json
+import os
 import random
 import time
 from datetime import date
@@ -21,12 +22,8 @@ from sackigami.fetch import (
 # TODO: What happens to count if several same results on the same day
 # TODO: Handle negative https reponse
 
-
-OFFLINE_TEST: bool = True or not Path(".env").exists()
-"""Flag to disable and enable posting X and using the X API.
-
-For True the X API will not be called.
-"""
+OFFLINE_TEST: bool = True
+"""Run without using the X API."""
 
 SAVE_PATH: Path = Path("posted.json")
 """Default save path for JSON game data."""
@@ -38,10 +35,27 @@ POST_TIMEOUT = 45
 """Base timeout between seperate X posts."""
 
 
+def offline_test() -> bool:
+    """Conditionally run without using the X api.
+
+    The execution will be an offline test if either the OFFLINE_TEST
+    flag is True, there is no .env (which contains the API creds) or
+    it is a Pytest test run.
+
+    Returns:
+        bool: Run offline test.
+    """
+    return (
+        OFFLINE_TEST
+        or not Path(".env").exists()
+        or bool(os.environ.get("PYTEST_CURRENT_TEST"))
+    )
+
+
 def set_correct_path(path: Optional[Path], fallback: Path) -> Path:
     """Decides the correct path to save or load the savefile.
 
-    If an offline test is run (the OFFLINE_TEST flag set to True) the fallback
+    If an offline test is run (the offline_test() flag set to True) the fallback
     path is forced for data storage. Otherwise path is returned.
 
     Args:
@@ -51,7 +65,7 @@ def set_correct_path(path: Optional[Path], fallback: Path) -> Path:
     Returns:
         Path: The path for data storage.
     """
-    if path is None or OFFLINE_TEST:
+    if path is None or offline_test():
         return fallback
     else:
         return path
@@ -196,12 +210,12 @@ def post(
 
     print(output)
 
-    if not OFFLINE_TEST:
+    if not offline_test():
         x.post(output)
 
     save_game_to_json(game, path, fallback)
 
-    if not OFFLINE_TEST:
+    if not offline_test():
         apply_delay()
 
 
@@ -290,7 +304,7 @@ def loop_over_week(week: pl.DataFrame, complete_team_stats: pl.DataFrame) -> Non
             if worth_posting(game, sim):
                 post(game, sim)
 
-    if OFFLINE_TEST:
+    if offline_test():
         Path(SAVE_PATH_OFFLINE).unlink(missing_ok=True)
 
 
@@ -323,7 +337,7 @@ def loop_over_no_sacks(week: pl.DataFrame, complete_team_stats: pl.DataFrame) ->
 
     print(output)
 
-    if not OFFLINE_TEST:
+    if not offline_test():
         x.post(output)
 
 
