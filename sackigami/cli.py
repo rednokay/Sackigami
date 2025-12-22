@@ -1,5 +1,8 @@
 import polars as pl
 import typer
+from dotenv import load_dotenv
+
+load_dotenv()
 
 from sackigami.bot import (
     loop_over_no_sacks,

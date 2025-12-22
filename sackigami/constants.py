@@ -4,7 +4,6 @@ from pathlib import Path
 from typing import Optional
 
 import polars as pl
-from dotenv import load_dotenv
 
 
 @dataclass(frozen=True)
@@ -79,7 +78,6 @@ COL: ColumnsOfInterest = ColumnsOfInterest()
 
 BOT_CONF: BotConfig = BotConfig()
 
-load_dotenv()
 API_CRED: APICred = APICred()
 
 
