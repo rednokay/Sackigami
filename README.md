@@ -6,6 +6,8 @@
 
 This is a [X-bot](https://x.com/sackigami) (@sackigami) posting funny and unique NFL sack stats.
 
+Documentation can be found on [GitHub Pages](https://rednokay.github.io/Sackigami).
+
 
 ## Posted Stats
 
