@@ -14,6 +14,8 @@ from sackigami.fetch import (
     find_similar_stat_lines,
     parse_last_gameday,
     parse_sack_data,
+    SimilarStatLines,
+    GameDay,
 )
 
 # TODO: Reduce save file size by only storing identifyind data
@@ -112,7 +114,9 @@ def plural_s(word: str, num: int | float) -> str:
     return word + "s" if num != 1 else word
 
 
-def create_string(game: dict[str, int | str], similar: Optional[dict[str, int]]) -> str:
+def create_string(
+    game: dict[str, int | str], similar: Optional[SimilarStatLines]
+) -> str:
     """Creates a string which is to be posted on stdout and X.
 
     Args:
@@ -152,7 +156,7 @@ def create_string(game: dict[str, int | str], similar: Optional[dict[str, int]])
     else:
         output.insert(0, "No Sackigami!\n")
         output.append(
-            f"\nThis has happened {similar["count"]} {plural_s("time", similar["count"])} before. Most recently in week {similar["week"]} of the {similar["season"]} season."
+            f"\nThis has happened {similar.count} {plural_s("time", similar.count)} before. Most recently in week {similar.last_gameday.week} of the {similar.last_gameday.season} season."
         )
 
     return "\n".join(output)
@@ -174,7 +178,7 @@ def random_delay(
     return max(delay, BOT_CONF.post_timeout * 0.45)
 
 
-def apply_delay():
+def apply_delay() -> None:
     """Apply a random delay."""
     delay = random_delay()
     print(f"Sleeping for {delay} seconds ...")
@@ -183,7 +187,7 @@ def apply_delay():
 
 def post(
     game: dict[str, int | str],
-    similar: Optional[dict[str, int]],
+    similar: Optional[SimilarStatLines],
     path: Optional[Path] = BOT_CONF.save_path,
     fallback: Path = BOT_CONF.save_path_offline,
 ) -> None:
@@ -228,7 +232,7 @@ def has_been_posted(
 
 
 def worth_posting(
-    game: dict[str, int | str], similar: Optional[dict[str, int]]
+    game: dict[str, int | str], similar: Optional[SimilarStatLines]
 ) -> bool:
     """Checks whether a game is worth posting.
 
@@ -249,10 +253,10 @@ def worth_posting(
     if similar is None:
         return True
 
-    if similar["count"] <= 4:
+    if similar.count <= 4:
         return True
 
-    if similar["season"] <= date.today().year - 15:
+    if similar.last_gameday.season <= date.today().year - 15:
         return True
 
     if (
@@ -282,17 +286,17 @@ def loop_over_week(week: pl.DataFrame, complete_team_stats: pl.DataFrame) -> Non
         complete_team_stats (pl.DataFrame): All stats.
     """
     week_sack_data: pl.DataFrame = parse_sack_data(week)
-    for game in week_sack_data.iter_rows(named=True):
-        sim: Optional[dict[str, int]] = find_similar_stat_lines(
-            complete_team_stats, game
+    for stat_line in week_sack_data.iter_rows(named=True):
+        sim: Optional[SimilarStatLines] = find_similar_stat_lines(
+            complete_team_stats, stat_line
         )
         print("--------------")
         if sim is None:
-            if not has_been_posted(game):
-                post(game, sim)
+            if not has_been_posted(stat_line):
+                post(stat_line, None)
         else:
-            if worth_posting(game, sim):
-                post(game, sim)
+            if worth_posting(stat_line, sim):
+                post(stat_line, sim)
 
     if offline_test():
         Path(BOT_CONF.save_path_offline).unlink(missing_ok=True)
@@ -310,14 +314,14 @@ def no_sack_average(complete_team_stats: pl.DataFrame) -> float:
     Returns:
         float: The 0 sack average.
     """
-    game_day: dict[str, int] = parse_last_gameday(complete_team_stats)
+    game_day: GameDay = parse_last_gameday(complete_team_stats)
 
     this_season_no_sacks: pl.DataFrame = complete_team_stats.filter(
-        (COL.season == game_day["season"]) & (COL.sacks_suffered == 0)
+        (COL.season == game_day.season) & (COL.sacks_suffered == 0)
     )
     amount: int = this_season_no_sacks.height
 
-    return amount / game_day["week"]
+    return amount / game_day.week
 
 
 def loop_over_no_sacks(week: pl.DataFrame, complete_team_stats: pl.DataFrame) -> None:

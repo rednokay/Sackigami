@@ -12,8 +12,10 @@ from bot import (
     post,
     save_game_to_json,
     set_correct_path,
+    SimilarStatLines,
+    GameDay,
 )
-from fetch import retrieve_week
+from fetch import retrieve_weekly_stats
 from test_fetch import complete_stats, complete_stats_no_repeats
 
 # TODO: Test worth_posting, loop over week
@@ -34,12 +36,8 @@ def game() -> dict[str, int | str]:
 
 
 @pytest.fixture
-def similar_not_none() -> dict[str, int]:
-    return {
-        "count": 5,
-        "week": 12,
-        "season": 2002,
-    }
+def similar_not_none() -> SimilarStatLines:
+    return SimilarStatLines(GameDay(2002, 12), 5)
 
 
 class TestSaveGameToJsonAndLoadGameFromJson:
@@ -79,8 +77,8 @@ class TestCreateString:
         assert created == expected
 
     def test_to_sackigami_singular(self, game, similar_not_none):
-        similar_single: dict[str, int | str] = similar_not_none
-        similar_single["count"] = 1
+        similar_single: SimilarStatLines = similar_not_none
+        similar_single.count = 1
 
         game_single: dict[str, int | str] = game
         for key, val in game_single.items():
@@ -130,7 +128,7 @@ class TestHasBeenPosted:
 # TODO: Add test for no sackigami
 class TestLoopOverWeek:
     def test_sackigami(self, capsys, complete_stats_no_repeats):
-        last_week: pl.DataFrame = retrieve_week(complete_stats_no_repeats)
+        last_week: pl.DataFrame = retrieve_weekly_stats(complete_stats_no_repeats)
         loop_over_week(last_week, complete_stats_no_repeats)
 
         captured: pytest.capture.CapturedResults = capsys.readouterr()
