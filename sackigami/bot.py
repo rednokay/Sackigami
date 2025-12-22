@@ -13,8 +13,6 @@ from sackigami.fetch import (
     find_similar_stat_lines,
     parse_last_gameday,
     parse_sack_data,
-    retrieve_complete_team_stats,
-    retrieve_week,
 )
 
 # TODO: Reduce save file size by only storing identifyind data
@@ -88,8 +86,8 @@ def create_string(game: dict[str, int | str], similar: Optional[dict[str, int]])
         str: The string which is to be posted.
     """
     output: list[str] = []
-    team: str = TEAMS[game["team"]]
-    opponent_team: str = TEAMS[game["opponent_team"]]
+    team: str = TEAMS[str(game["team"])]
+    opponent_team: str = TEAMS[str(game["opponent_team"])]
     sacks_suffered: int = int(game["sacks_suffered"])
     sack_yards_lost: int = int(game["sack_yards_lost"])
     sack_fumbles: int = int(game["sack_fumbles"])
@@ -214,18 +212,18 @@ def worth_posting(
         return True
 
     if (
-        game["sacks_suffered"] >= STAT_THRESHOLDS["sacks_suffered"]
+        int(game["sacks_suffered"]) >= STAT_THRESHOLDS["sacks_suffered"]
         and game["sack_yards_lost"] == 0
     ):
         return True
 
     if (
-        (game["sacks_suffered"] >= STAT_THRESHOLDS["sacks_suffered"])
+        (int(game["sacks_suffered"]) >= STAT_THRESHOLDS["sacks_suffered"])
         or (
             abs(int(game["sack_yards_lost"])) >= abs(STAT_THRESHOLDS["sack_yards_lost"])
         )
-        or (game["sack_fumbles"] >= STAT_THRESHOLDS["sack_fumbles"])
-        or (game["sack_fumbles_lost"] >= STAT_THRESHOLDS["sack_fumbles_lost"])
+        or (int(game["sack_fumbles"]) >= STAT_THRESHOLDS["sack_fumbles"])
+        or (int(game["sack_fumbles_lost"]) >= STAT_THRESHOLDS["sack_fumbles_lost"])
     ):
         return True
 

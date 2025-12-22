@@ -1,10 +1,13 @@
-import typer
 import polars as pl
+import typer
+
 from sackigami.bot import (
+    loop_over_no_sacks,
+    loop_over_week,
+)
+from sackigami.fetch import (
     retrieve_complete_team_stats,
     retrieve_week,
-    loop_over_week,
-    loop_over_no_sacks,
 )
 
 APP_KWARGS: dict[str, str | bool] = {
