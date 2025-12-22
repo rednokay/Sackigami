@@ -1,28 +1,9 @@
 import os
-import tweepy
+
 import requests
-from dotenv import load_dotenv
-from dataclasses import dataclass
+import tweepy
 
-load_dotenv()
-
-
-@dataclass(frozen=True)
-class APICred:
-    api_key = os.getenv("API_KEY")
-    """Public X API key"""
-
-    api_secret = os.getenv("API_SECRET")
-    """Secret X API key"""
-
-    access_token = os.getenv("ACCESS_TOKEN")
-    """Public X API access token"""
-
-    access_secret = os.getenv("ACCESS_SECRET")
-    """Secret X API acccess token"""
-
-
-cred: APICred = APICred()
+from sackigami.constants import API_CRED
 
 
 def connect_to_client() -> tweepy.Client:
@@ -32,10 +13,10 @@ def connect_to_client() -> tweepy.Client:
         tweepy.Client: The connected client.
     """
     return tweepy.Client(
-        consumer_key=cred.api_key,
-        consumer_secret=cred.api_secret,
-        access_token=cred.access_token,
-        access_token_secret=cred.access_secret,
+        consumer_key=API_CRED.api_key,
+        consumer_secret=API_CRED.api_secret,
+        access_token=API_CRED.access_token,
+        access_token_secret=API_CRED.access_secret,
     )
 
 

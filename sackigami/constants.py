@@ -1,7 +1,10 @@
+import os
 from dataclasses import dataclass, field
 from pathlib import Path
+from typing import Optional
 
 import polars as pl
+from dotenv import load_dotenv
 
 
 @dataclass(frozen=True)
@@ -48,9 +51,36 @@ class BotConfig:
     """Base timeout between seperate X posts."""
 
 
+# repr=False is mandatory to not leak keys!!!
+@dataclass(frozen=True)
+class APICred:
+    api_key: Optional[str] = field(
+        repr=False, default_factory=lambda: os.getenv("API_KEY")
+    )
+    """Public X API key"""
+
+    api_secret: Optional[str] = field(
+        repr=False, default_factory=lambda: os.getenv("API_SECRET")
+    )
+    """Secret X API key"""
+
+    access_token: Optional[str] = field(
+        repr=False, default_factory=lambda: os.getenv("ACCESS_TOKEN")
+    )
+    """Public X API access token"""
+
+    access_secret: Optional[str] = field(
+        repr=False, default_factory=lambda: os.getenv("ACCESS_SECRET")
+    )
+    """Secret X API acccess token"""
+
+
 COL: ColumnsOfInterest = ColumnsOfInterest()
 
 BOT_CONF: BotConfig = BotConfig()
+
+load_dotenv()
+API_CRED: APICred = APICred()
 
 
 DATA_OF_INTEREST: tuple[str, ...] = (
