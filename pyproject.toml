@@ -1,6 +1,6 @@
 [project]
 name = "sackigami"
-version = "0.2.0"
+version = "0.2.1"
 description = "Posting interesting NFL sack stat-lines."
 authors = [
     {name = "rednokay",email = "207755534+rednokay@users.noreply.github.com"}
