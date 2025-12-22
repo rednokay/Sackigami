@@ -21,8 +21,6 @@ from sackigami.fetch import (
 # TODO: What happens to count if several same results on the same day
 # TODO: Handle negative https reponse
 
-SAVE_PATH: Path = Path("posted.json")
-"""Default save path for JSON game data."""
 
 OFFLINE_TEST: bool = True or not Path(".env").exists()
 """Flag to disable and enable posting X and using the X API.
@@ -30,32 +28,68 @@ OFFLINE_TEST: bool = True or not Path(".env").exists()
 For True the X API will not be called.
 """
 
+SAVE_PATH: Path = Path("posted.json")
+"""Default save path for JSON game data."""
+
+SAVE_PATH_OFFLINE: Path = Path("posted_offline.json")
+"""Default save path for JSON game data."""
+
 POST_TIMEOUT = 45
 """Base timeout between seperate X posts."""
 
 
-def save_game_to_json(game: dict[str, int | str], path: Path = SAVE_PATH) -> None:
+def set_correct_path(path: Optional[Path], fallback: Path) -> Path:
+    """Decides the correct path to save or load the savefile.
+
+    If an offline test is run (the OFFLINE_TEST flag set to True) the fallback
+    path is forced for data storage. Otherwise path is returned.
+
+    Args:
+        path (Optional[Path]): Path where to permanently save the JSON data.
+        fallback (Path): Path where to fallback to for testing.
+
+    Returns:
+        Path: The path for data storage.
+    """
+    if path is None or OFFLINE_TEST:
+        return fallback
+    else:
+        return path
+
+
+def save_game_to_json(
+    game: dict[str, int | str],
+    path: Optional[Path] = SAVE_PATH,
+    fallback: Path = SAVE_PATH_OFFLINE,
+) -> None:
     """Saves game data to a file in JSON format.
 
     Args:
         game (dict[str, int  |  str]): Dict that contains game data.
-        path (Path, optional): Path where to save the JSON data. Defaults to SAVE_PATH.
+        path (Optional[Path], optional): Path where to save the JSON data. Defaults to SAVE_PATH.
+        fallback (Path, optional): Path where to save the JSON data when offline testing. Defaults to SAVE_PATH_OFFLINE.
     """
-    exiting_games: list[dict[str, int | str]] = load_game_from_json(path)
+    path = set_correct_path(path, fallback)
+
+    exiting_games: list[dict[str, int | str]] = load_game_from_json(path, fallback)
     exiting_games.append(game)
 
     path.write_text(json.dumps(exiting_games, indent=4))
 
 
-def load_game_from_json(path: Path = SAVE_PATH) -> list[dict[str, int | str]]:
+def load_game_from_json(
+    path: Optional[Path] = SAVE_PATH, fallback: Path = SAVE_PATH_OFFLINE
+) -> list[dict[str, int | str]]:
     """Load game data from a JSON file.
 
     Args:
-        path (Path, optional): Path to the saved gama data JSON file. Defaults to SAVE_PATH.
+        path (Optional[Path], optional): Path to the saved gama data JSON file. Defaults to SAVE_PATH.
+        fallback (Path, optional): Path where to the saved JSON data when offline testing. Defaults to SAVE_PATH_OFFLINE.
 
     Returns:
         list[dict[str, int | str]]: List with all saved game data.
     """
+    path = set_correct_path(path, fallback)
     if path.exists():
         return json.loads(path.read_text())
     else:
@@ -147,14 +181,16 @@ def apply_delay():
 def post(
     game: dict[str, int | str],
     similar: Optional[dict[str, int]],
-    path: Path = SAVE_PATH,
+    path: Optional[Path] = SAVE_PATH,
+    fallback: Path = SAVE_PATH_OFFLINE,
 ) -> None:
     """Posts a game to stdout and X.
 
     Args:
         game (dict[str, int  |  str]): Dict that contains game data.
         similar (Optional[dict[str, int]]): Dict that contains data how often the same game stats happened before. None if never.
-        path (Path, optional): Path where to save games of completed posts. Defaults to SAVE_PATH.
+        path (Optional[Path], optional): Path where to save games of completed posts. Defaults to SAVE_PATH.
+        fallback (Path, optional): Path where to save save games of completed posts when offline testing. Defaults to SAVE_PATH_OFFLINE.
     """
     output: str = create_string(game, similar)
 
@@ -163,23 +199,28 @@ def post(
     if not OFFLINE_TEST:
         x.post(output)
 
-    save_game_to_json(game, path)
+    save_game_to_json(game, path, fallback)
 
     if not OFFLINE_TEST:
         apply_delay()
 
 
-def has_been_posted(game: dict[str, int | str], path: Path = SAVE_PATH) -> bool:
+def has_been_posted(
+    game: dict[str, int | str],
+    path: Optional[Path] = SAVE_PATH,
+    fallback: Path = SAVE_PATH_OFFLINE,
+) -> bool:
     """Checks whether a game has already been posted.
 
     Args:
         game (dict[str, int  |  str]): Dict that contains game data.
-        path (Path, optional): Path where to look for saved games in JSON format. Defaults to SAVE_PATH.
+        path (Optional[Path], optional): Path where to look for saved games in JSON format. Defaults to SAVE_PATH.
+        fallback (Path, optional): Path where to look for saved games in JSON format when offline testing. Defaults to SAVE_PATH_OFFLINE.
 
     Returns:
         bool: True if game has been posted, False if not.
     """
-    exiting_games: list[dict[str, int | str]] = load_game_from_json(path)
+    exiting_games: list[dict[str, int | str]] = load_game_from_json(path, fallback)
     return game in exiting_games
 
 
@@ -250,7 +291,7 @@ def loop_over_week(week: pl.DataFrame, complete_team_stats: pl.DataFrame) -> Non
                 post(game, sim)
 
     if OFFLINE_TEST:
-        Path(SAVE_PATH).unlink(missing_ok=True)
+        Path(SAVE_PATH_OFFLINE).unlink(missing_ok=True)
 
 
 def no_sack_average(complete_team_stats: pl.DataFrame) -> float:

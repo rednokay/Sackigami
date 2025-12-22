@@ -1,3 +1,6 @@
+from pathlib import Path
+from typing import Optional
+
 import polars as pl
 import pytest
 from bot import (
@@ -8,9 +11,12 @@ from bot import (
     no_sack_average,
     post,
     save_game_to_json,
+    set_correct_path,
 )
 from fetch import retrieve_week
 from test_fetch import complete_stats, complete_stats_no_repeats
+
+from sackigami.bot import OFFLINE_TEST
 
 # TODO: Test worth_posting, loop over week
 
@@ -43,21 +49,21 @@ class TestSaveGameToJsonAndLoadGameFromJson:
         save_path = tmp_path / "games.json"
 
         assert not save_path.exists()
-        assert not load_game_from_json(save_path)
+        assert not load_game_from_json(None, save_path)
 
-        save_game_to_json(game, save_path)
+        save_game_to_json(game, None, save_path)
 
         assert save_path.exists()
-        assert [game] == load_game_from_json(save_path)
+        assert [game] == load_game_from_json(None, save_path)
 
     def test_existing_games(self, game, tmp_path):
         save_path = tmp_path / "games.json"
 
-        save_game_to_json(game, save_path)
-        save_game_to_json(game, save_path)
+        save_game_to_json(game, None, save_path)
+        save_game_to_json(game, None, save_path)
 
         assert save_path.exists()
-        assert [game, game] == load_game_from_json(save_path)
+        assert [game, game] == load_game_from_json(None, save_path)
 
 
 class TestCreateString:
@@ -113,14 +119,14 @@ class TestCreateString:
 class TestHasBeenPosted:
     def test_has_not_been_posted(self, game, tmp_path):
         save_path = tmp_path / "games.json"
-        assert not has_been_posted(game, save_path)
+        assert not has_been_posted(game, None, save_path)
 
     def test_has_been_posted(self, game, tmp_path):
         save_path = tmp_path / "games.json"
-        post(game, None, save_path)
+        post(game, None, None, save_path)
 
         assert save_path.exists()
-        assert has_been_posted(game, save_path)
+        assert has_been_posted(game, None, save_path)
 
 
 # TODO: Add test for no sackigami
@@ -153,3 +159,20 @@ def test_no_sack_average():
     expected: float = 2.0
 
     assert res == expected
+
+
+class TestSetCorrectPath:
+    def test_no_path_given(self, tmp_path):
+        path: Optional[Path] = None
+        fallback = tmp_path / "games.json"
+
+        assert set_correct_path(path, fallback) == fallback
+
+    # TODO: Some how test with OFFLINE_TEST = True
+    def test_path_given(self, tmp_path):
+        path: Optional[Path] = tmp_path / "games.json"
+
+        fallback = tmp_path / "fallback.json"
+
+        # This is due to OFFLINE_TEST
+        assert set_correct_path(path, fallback) == fallback
