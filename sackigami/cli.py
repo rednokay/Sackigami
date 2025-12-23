@@ -13,13 +13,10 @@ from sackigami.teams import (
     retrieve_weekly_stats,
 )
 
-APP_KWARGS: dict[str, str | bool] = {
-    "suggest_commands": True,
-    "no_args_is_help": True,
-}
-"""Kwargs used for typer constructor."""
-
-app = typer.Typer(**APP_KWARGS)
+app = typer.Typer(
+    suggest_commands=True,
+    no_args_is_help=True,
+)
 """Typer app."""
 
 

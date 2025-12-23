@@ -1,5 +1,5 @@
 from dataclasses import dataclass
-from typing import Optional, Self
+from typing import Any, Optional, Self
 
 import nflreadpy as nfl
 import polars as pl
@@ -93,7 +93,7 @@ class SackStatLine:
         )
 
     @classmethod
-    def from_dict(cls, stat_line: dict[str, int | str]):
+    def from_dict(cls, stat_line: dict[str, int | str]) -> Self:
         """Create SackStatLine from dict.
 
         Args:
@@ -115,7 +115,7 @@ class SackStatLine:
         )
 
 
-def retrieve_complete_team_stats() -> pl.DataFrame:
+def retrieve_complete_team_stats() -> Any | pl.DataFrame:
     """Download complete teams stats of all available seasons.
 
     Returns:

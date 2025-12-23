@@ -28,5 +28,5 @@ def post(text: str) -> requests.Response:
         requests.Response: Response by the client.
     """
     client: tweepy.Client = connect_to_client()
-    response = client.create_tweet(text=text)
+    response: requests.Response = client.create_tweet(text=text)
     return response

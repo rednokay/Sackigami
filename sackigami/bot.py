@@ -4,7 +4,7 @@ import random
 import time
 from datetime import date
 from pathlib import Path
-from typing import Optional
+from typing import Any, Optional
 
 import polars as pl
 
@@ -85,7 +85,7 @@ def save_game_to_json(
 def load_game_from_json(
     path: Optional[Path] = BOT_CONF.save_path,
     fallback: Path = BOT_CONF.save_path_offline,
-) -> list[dict[str, int | str]]:
+) -> list[dict[str, int | str]] | Any:
     """Load game data from a JSON file.
 
     Args:
