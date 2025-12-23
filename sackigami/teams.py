@@ -1,5 +1,5 @@
-from typing import Optional
 from dataclasses import dataclass
+from typing import Optional, Self
 
 import nflreadpy as nfl
 import polars as pl
@@ -7,7 +7,6 @@ import polars as pl
 from sackigami.constants import (
     COL,
     DATA_OF_INTEREST,
-    STAT_THRESHOLDS,
 )
 
 
@@ -31,6 +30,89 @@ class SimilarStatLines:
 
     count: int
     """How often the similar stat line occured."""
+
+
+@dataclass
+class SackStatLine:
+    """A single teams stat line with the relevant data."""
+
+    gameday: GameDay
+    """Gameday the a similar stat line occured the last time."""
+
+    team: str
+    """Team of interest."""
+
+    opponent_team: str
+    """Opponent team."""
+
+    suffered: int
+    """Amount sacks suffered."""
+
+    yards_lost: int
+    """Yards lost on sacks."""
+
+    fumbles: int
+    """Amount strip sacks/fumbles caused by sacks."""
+
+    fumbles_lost: int
+    """Fumbles lost/turnovers caused by strip sacks."""
+
+    def as_dict(self) -> dict[str, int | str]:
+        return {
+            "season": self.gameday.season,
+            "week": self.gameday.week,
+            "team": self.team,
+            "opponent_team": self.opponent_team,
+            "sacks_suffered": self.suffered,
+            "sack_yards_lost": self.yards_lost,
+            "sack_fumbles": self.fumbles,
+            "sack_fumbles_lost": self.fumbles_lost,
+        }
+
+    @classmethod
+    def from_df(cls, stat_line: pl.DataFrame) -> Self:
+        """Create SackStatLine from pl.DataFrame.
+
+        Args:
+            stat_line (pl.DataFrame): Sack stat line as dataframe.
+
+        Returns:
+            Self: The SackStatLine.
+        """
+        return cls(
+            gameday=GameDay(
+                season=stat_line.select(COL.season.last()).item(),
+                week=stat_line.select(COL.week.last()).item(),
+            ),
+            team=stat_line.select(COL.team.last()).item(),
+            opponent_team=stat_line.select(COL.opponent_team.last()).item(),
+            suffered=stat_line.select(COL.sacks_suffered.last()).item(),
+            yards_lost=stat_line.select(COL.sack_yards_lost.last()).item(),
+            fumbles=stat_line.select(COL.sack_fumbles.last()).item(),
+            fumbles_lost=stat_line.select(COL.sack_fumbles_lost.last()).item(),
+        )
+
+    @classmethod
+    def from_dict(cls, stat_line: dict[str, int | str]):
+        """Create SackStatLine from dict.
+
+        Args:
+            stat_line (dict[str, int | str]): Sack stat line as dict.
+
+        Returns:
+            Self: The SackStatLine.
+        """
+        return cls(
+            gameday=GameDay(
+                season=int(stat_line["season"]), week=int(stat_line["week"])
+            ),
+            team=str(stat_line["team"]),
+            opponent_team=str(stat_line["opponent_team"]),
+            suffered=int(stat_line["sacks_suffered"]),
+            yards_lost=int(stat_line["sack_yards_lost"]),
+            fumbles=int(stat_line["sack_fumbles"]),
+            fumbles_lost=int(stat_line["sack_fumbles_lost"]),
+        )
 
 
 def retrieve_complete_team_stats() -> pl.DataFrame:
@@ -92,58 +174,31 @@ def parse_sack_data(weekly_team_stats: pl.DataFrame) -> pl.DataFrame:
 
 
 def find_similar_stat_lines(
-    complete_team_stats: pl.DataFrame, stat_line: pl.DataFrame | dict[str, str | int]
+    complete_team_stats: pl.DataFrame, sack_stat_line: SackStatLine
 ) -> Optional[SimilarStatLines]:
     """Finds the amount of and the last time a completely similar stat line occured.
 
     Args:
         complete_team_stats (pl.DataFrame): Complete team stats.
-        stat_line (pl.DataFrame | dict[str, str  |  int]): The stat line to look for.
-
-    Raises:
-        TypeError: Stat line is of invalid data type.
+        sack_stat_line (SackStatLine): The stat line to look for.
 
     Returns:
         Optional[SimilarStatLines]: The similar stat line or None of none found.
     """
 
-    sacks_suffered: Optional[int] = None
-    sack_yards_lost: Optional[int] = None
-    sack_fumbles: Optional[int] = None
-    sack_fumbles_lost: Optional[int] = None
-    season: Optional[int] = None
-    week: Optional[int] = None
-    team: Optional[str] = None
-
-    match stat_line:
-        case pl.DataFrame():
-            sacks_suffered = stat_line.select(COL.sacks_suffered.last()).item()
-            sack_yards_lost = stat_line.select(COL.sack_yards_lost.last()).item()
-            sack_fumbles = stat_line.select(COL.sack_fumbles.last()).item()
-            sack_fumbles_lost = stat_line.select(COL.sack_fumbles_lost.last()).item()
-            season = stat_line.select(COL.season.last()).item()
-            week = stat_line.select(COL.week.last()).item()
-            team = stat_line.select(COL.team.last()).item()
-        case dict():
-            sacks_suffered = int(stat_line["sacks_suffered"])
-            sack_yards_lost = int(stat_line["sack_yards_lost"])
-            sack_fumbles = int(stat_line["sack_fumbles"])
-            sack_fumbles_lost = int(stat_line["sack_fumbles_lost"])
-            season = int(stat_line["season"])
-            week = int(stat_line["week"])
-            team = str(stat_line["team"])
-        case _:
-            raise TypeError(f"Unhandled type for {complete_team_stats}")
-
     similar_lines: pl.DataFrame = complete_team_stats.filter(
-        (COL.sacks_suffered == sacks_suffered)
-        & (COL.sack_yards_lost == sack_yards_lost)
-        & (COL.sack_fumbles == sack_fumbles)
-        & (COL.sack_fumbles_lost == sack_fumbles_lost)
+        (COL.sacks_suffered == sack_stat_line.suffered)
+        & (COL.sack_yards_lost == sack_stat_line.yards_lost)
+        & (COL.sack_fumbles == sack_stat_line.fumbles)
+        & (COL.sack_fumbles_lost == sack_stat_line.fumbles_lost)
     )
 
     similar_lines = similar_lines.filter(
-        ~((COL.team == team) & (COL.season == season) & (COL.week == week))
+        ~(
+            (COL.team == sack_stat_line.team)
+            & (COL.season == sack_stat_line.gameday.season)
+            & (COL.week == sack_stat_line.gameday.week)
+        )
     )
 
     count: int = similar_lines.height

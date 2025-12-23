@@ -4,8 +4,6 @@ from typing import Optional
 import polars as pl
 import pytest
 from bot import (
-    GameDay,
-    SimilarStatLines,
     create_string,
     has_been_posted,
     load_game_from_json,
@@ -15,24 +13,26 @@ from bot import (
     save_game_to_json,
     set_correct_path,
 )
-from teams import retrieve_weekly_stats
+from teams import GameDay, SackStatLine, SimilarStatLines, retrieve_weekly_stats
 from test_teams import complete_stats, complete_stats_no_repeats
 
 # TODO: Test worth_posting, loop over week
 
 
 @pytest.fixture
-def game() -> dict[str, int | str]:
-    return {
-        "season": 2025,
-        "week": 16,
-        "team": "WAS",
-        "opponent_team": "BAL",
-        "sacks_suffered": 7,
-        "sack_yards_lost": -45,
-        "sack_fumbles": 3,
-        "sack_fumbles_lost": 2,
-    }
+def game() -> SackStatLine:
+    return SackStatLine.from_dict(
+        {
+            "season": 2025,
+            "week": 16,
+            "team": "WAS",
+            "opponent_team": "BAL",
+            "sacks_suffered": 7,
+            "sack_yards_lost": -45,
+            "sack_fumbles": 3,
+            "sack_fumbles_lost": 2,
+        }
+    )
 
 
 @pytest.fixture
@@ -50,7 +50,7 @@ class TestSaveGameToJsonAndLoadGameFromJson:
         save_game_to_json(game, None, save_path)
 
         assert save_path.exists()
-        assert [game] == load_game_from_json(None, save_path)
+        assert [game.as_dict()] == load_game_from_json(None, save_path)
 
     def test_existing_games(self, game, tmp_path):
         save_path = tmp_path / "games.json"
@@ -59,7 +59,7 @@ class TestSaveGameToJsonAndLoadGameFromJson:
         save_game_to_json(game, None, save_path)
 
         assert save_path.exists()
-        assert [game, game] == load_game_from_json(None, save_path)
+        assert [game.as_dict(), game.as_dict()] == load_game_from_json(None, save_path)
 
 
 class TestCreateString:
@@ -80,13 +80,15 @@ class TestCreateString:
         similar_single: SimilarStatLines = similar_not_none
         similar_single.count = 1
 
-        game_single: dict[str, int | str] = game
+        game_single: dict[str, int | str] = game.as_dict()
         for key, val in game_single.items():
             match val:
                 case int():
                     game_single[key] = 1
 
-        created: str = create_string(game_single, similar_single)
+        created: str = create_string(
+            SackStatLine.from_dict(game_single), similar_single
+        )
 
         expected: str = (
             "No Sackigami!\n\n"

@@ -5,10 +5,13 @@ import pytest
 from constants import TEAMS
 from teams import (
     GameDay,
+    SackStatLine,
     SimilarStatLines,
     find_similar_stat_lines,
     retrieve_weekly_stats,
 )
+
+# TODO: Test SimilarStackLines from methods
 
 
 # TODO: What if the randoms actually generate equal stat lines?
@@ -241,6 +244,7 @@ class TestFindSimilarStatLines:
                 "season": 2025,
                 "week": 16,
                 "team": "WAS",
+                "opponent_team": "BAL",
                 "sacks_suffered": 7,
                 "sack_yards_lost": -45,
                 "sack_fumbles": 3,
@@ -248,55 +252,26 @@ class TestFindSimilarStatLines:
             }
         )
 
-        sim = find_similar_stat_lines(complete_stats, relevant_last_week)
+        sack_stat_line = SackStatLine.from_df(relevant_last_week)
+
+        sim = find_similar_stat_lines(complete_stats, sack_stat_line)
 
         assert sim is not None
         assert sim == SimilarStatLines(GameDay(season=2025, week=16), 3)
 
     def test_no_exiting_similar_stat_line(self, complete_stats_no_repeats):
-        relevant_last_week = pl.DataFrame(
-            {
-                "season": 2025,
-                "week": 16,
-                "team": "WAS",
-                "sacks_suffered": 7,
-                "sack_yards_lost": -45,
-                "sack_fumbles": 3,
-                "sack_fumbles_lost": 2,
-            }
-        )
-
-        sim = find_similar_stat_lines(complete_stats_no_repeats, relevant_last_week)
-
-        assert sim is None
-
-    def test_existing_similar_stat_linse_dcit(self, complete_stats):
         relevant_last_week = {
             "season": 2025,
             "week": 16,
             "team": "WAS",
+            "opponent_team": "BAL",
             "sacks_suffered": 7,
             "sack_yards_lost": -45,
             "sack_fumbles": 3,
             "sack_fumbles_lost": 2,
         }
+        sack_stat_line = SackStatLine.from_dict(relevant_last_week)
 
-        sim = find_similar_stat_lines(complete_stats, relevant_last_week)
-
-        assert sim is not None
-        assert sim == SimilarStatLines(GameDay(season=2025, week=16), 3)
-
-    def test_no_exiting_similar_stat_line_dict(self, complete_stats_no_repeats):
-        relevant_last_week = {
-            "season": 2025,
-            "week": 16,
-            "team": "WAS",
-            "sacks_suffered": 7,
-            "sack_yards_lost": -45,
-            "sack_fumbles": 3,
-            "sack_fumbles_lost": 2,
-        }
-
-        sim = find_similar_stat_lines(complete_stats_no_repeats, relevant_last_week)
+        sim = find_similar_stat_lines(complete_stats_no_repeats, sack_stat_line)
 
         assert sim is None

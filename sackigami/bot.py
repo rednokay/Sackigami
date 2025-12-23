@@ -12,6 +12,7 @@ import sackigami.x as x
 from sackigami.constants import BOT_CONF, COL, STAT_THRESHOLDS, TEAMS
 from sackigami.teams import (
     GameDay,
+    SackStatLine,
     SimilarStatLines,
     find_similar_stat_lines,
     parse_last_gameday,
@@ -62,21 +63,21 @@ def set_correct_path(path: Optional[Path], fallback: Path) -> Path:
 
 
 def save_game_to_json(
-    game: dict[str, int | str],
+    sack_stat_line: SackStatLine,
     path: Optional[Path] = BOT_CONF.save_path,
     fallback: Path = BOT_CONF.save_path_offline,
 ) -> None:
     """Saves game data to a file in JSON format.
 
     Args:
-        game (dict[str, int  |  str]): Dict that contains game data.
+        sack_stat_line (SackStatLine): Stat line to save.
         path (Optional[Path], optional): Path where to save the JSON data. Defaults to BOT_CONF.save_path.
         fallback (Path, optional): Path where to save the JSON data when offline testing. Defaults to BOT_CONF.save_path_offline.
     """
     path = set_correct_path(path, fallback)
 
     exiting_games: list[dict[str, int | str]] = load_game_from_json(path, fallback)
-    exiting_games.append(game)
+    exiting_games.append(sack_stat_line.as_dict())
 
     path.write_text(json.dumps(exiting_games, indent=4))
 
@@ -115,24 +116,24 @@ def plural_s(word: str, num: int | float) -> str:
 
 
 def create_string(
-    game: dict[str, int | str], similar: Optional[SimilarStatLines]
+    sack_stat_line: SackStatLine, similar: Optional[SimilarStatLines]
 ) -> str:
     """Creates a string which is to be posted on stdout and X.
 
     Args:
-        game (dict[str, int  |  str]): Dict that contains game data.
-        similar (Optional[dict[str, int]]): Dict that contains data how often the same game stats happened before. None if never.
+        sack_stat_line (SackStatLine): Sack line to create string for.
+        similar (Optional[SimilarStatLines]): Data how often the same game stats happened before. None if never.
 
     Returns:
         str: The string which is to be posted.
     """
     output: list[str] = []
-    team: str = TEAMS[str(game["team"])]
-    opponent_team: str = TEAMS[str(game["opponent_team"])]
-    sacks_suffered: int = int(game["sacks_suffered"])
-    sack_yards_lost: int = int(game["sack_yards_lost"])
-    sack_fumbles: int = int(game["sack_fumbles"])
-    sack_fumbles_lost: int = int(game["sack_fumbles_lost"])
+    team: str = TEAMS[sack_stat_line.team]
+    opponent_team: str = TEAMS[sack_stat_line.opponent_team]
+    sacks_suffered: int = sack_stat_line.suffered
+    sack_yards_lost: int = sack_stat_line.yards_lost
+    sack_fumbles: int = sack_stat_line.fumbles
+    sack_fumbles_lost: int = sack_stat_line.fumbles_lost
 
     output.append(
         f"The {team} suffered {sacks_suffered} {plural_s("sack", sacks_suffered)} in their game against the {opponent_team}. This led to a total of {abs(sack_yards_lost)} {plural_s("yard", sack_yards_lost)} lost."
@@ -186,7 +187,7 @@ def apply_delay() -> None:
 
 
 def post(
-    game: dict[str, int | str],
+    sack_stat_line: SackStatLine,
     similar: Optional[SimilarStatLines],
     path: Optional[Path] = BOT_CONF.save_path,
     fallback: Path = BOT_CONF.save_path_offline,
@@ -194,33 +195,33 @@ def post(
     """Posts a game to stdout and X.
 
     Args:
-        game (dict[str, int  |  str]): Dict that contains game data.
+        sack_stat_line (SackStatLine): Sack stat line to post.
         similar (Optional[dict[str, int]]): Dict that contains data how often the same game stats happened before. None if never.
         path (Optional[Path], optional): Path where to save games of completed posts. Defaults to BOT_CONF.save_path.
         fallback (Path, optional): Path where to save save games of completed posts when offline testing. Defaults to BOT_CONF.save_path_offline.
     """
-    output: str = create_string(game, similar)
+    output: str = create_string(sack_stat_line, similar)
 
     print(output)
 
     if not offline_test():
         x.post(output)
 
-    save_game_to_json(game, path, fallback)
+    save_game_to_json(sack_stat_line, path, fallback)
 
     if not offline_test():
         apply_delay()
 
 
 def has_been_posted(
-    game: dict[str, int | str],
+    sack_stat_line: SackStatLine,
     path: Optional[Path] = BOT_CONF.save_path,
     fallback: Path = BOT_CONF.save_path_offline,
 ) -> bool:
     """Checks whether a game has already been posted.
 
     Args:
-        game (dict[str, int  |  str]): Dict that contains game data.
+        sack_stat_line (SackStatLine): Stat line to check for.
         path (Optional[Path], optional): Path where to look for saved games in JSON format. Defaults to BOT_CONF.save_path.
         fallback (Path, optional): Path where to look for saved games in JSON format when offline testing. Defaults to BOT_CONF.save_path_offline.
 
@@ -228,11 +229,11 @@ def has_been_posted(
         bool: True if game has been posted, False if not.
     """
     exiting_games: list[dict[str, int | str]] = load_game_from_json(path, fallback)
-    return game in exiting_games
+    return sack_stat_line.as_dict() in exiting_games
 
 
 def worth_posting(
-    game: dict[str, int | str], similar: Optional[SimilarStatLines]
+    sack_stat_line: SackStatLine, similar: Optional[SimilarStatLines]
 ) -> bool:
     """Checks whether a game is worth posting.
 
@@ -240,14 +241,14 @@ def worth_posting(
     decide on whether it is worth posting.
 
     Args:
-        game (dict[str, int  |  str]): Dict that contains the game data.
+        sack_stat_line (SackStatLine): Sack stat line to check for.
         similar (Optional[dict[str, int]]): Dict that contains data how often the same game stats happened before. None if never.
 
     Returns:
         bool: True if the game is worth, False if not.
     """
 
-    if has_been_posted(game):
+    if has_been_posted(sack_stat_line):
         return False
 
     if similar is None:
@@ -260,18 +261,17 @@ def worth_posting(
         return True
 
     if (
-        int(game["sacks_suffered"]) >= STAT_THRESHOLDS["sacks_suffered"]
-        and game["sack_yards_lost"] == 0
+        sack_stat_line.suffered >= STAT_THRESHOLDS["sacks_suffered"]
+        # TODO: Prbly to unrealistic
+        and sack_stat_line.yards_lost == 0
     ):
         return True
 
     if (
-        (int(game["sacks_suffered"]) >= STAT_THRESHOLDS["sacks_suffered"])
-        or (
-            abs(int(game["sack_yards_lost"])) >= abs(STAT_THRESHOLDS["sack_yards_lost"])
-        )
-        or (int(game["sack_fumbles"]) >= STAT_THRESHOLDS["sack_fumbles"])
-        or (int(game["sack_fumbles_lost"]) >= STAT_THRESHOLDS["sack_fumbles_lost"])
+        (sack_stat_line.suffered >= STAT_THRESHOLDS["sacks_suffered"])
+        or (abs(sack_stat_line.yards_lost) >= abs(STAT_THRESHOLDS["sack_yards_lost"]))
+        or (sack_stat_line.fumbles >= STAT_THRESHOLDS["sack_fumbles"])
+        or (sack_stat_line.fumbles_lost >= STAT_THRESHOLDS["sack_fumbles_lost"])
     ):
         return True
 
@@ -287,16 +287,18 @@ def loop_over_week(week: pl.DataFrame, complete_team_stats: pl.DataFrame) -> Non
     """
     week_sack_data: pl.DataFrame = parse_sack_data(week)
     for stat_line in week_sack_data.iter_rows(named=True):
+        sack_stat_line = SackStatLine.from_dict(stat_line)
+
         sim: Optional[SimilarStatLines] = find_similar_stat_lines(
-            complete_team_stats, stat_line
+            complete_team_stats, sack_stat_line
         )
         print("--------------")
         if sim is None:
-            if not has_been_posted(stat_line):
-                post(stat_line, None)
+            if not has_been_posted(sack_stat_line):
+                post(sack_stat_line, None)
         else:
-            if worth_posting(stat_line, sim):
-                post(stat_line, sim)
+            if worth_posting(sack_stat_line, sim):
+                post(sack_stat_line, sim)
 
     if offline_test():
         Path(BOT_CONF.save_path_offline).unlink(missing_ok=True)
