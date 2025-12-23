@@ -4,6 +4,8 @@ from typing import Optional
 import polars as pl
 import pytest
 from bot import (
+    GameDay,
+    SimilarStatLines,
     create_string,
     has_been_posted,
     load_game_from_json,
@@ -12,11 +14,9 @@ from bot import (
     post,
     save_game_to_json,
     set_correct_path,
-    SimilarStatLines,
-    GameDay,
 )
-from fetch import retrieve_weekly_stats
-from test_fetch import complete_stats, complete_stats_no_repeats
+from teams import retrieve_weekly_stats
+from test_teams import complete_stats, complete_stats_no_repeats
 
 # TODO: Test worth_posting, loop over week
 

@@ -8,7 +8,7 @@ from sackigami.bot import (
     loop_over_no_sacks,
     loop_over_week,
 )
-from sackigami.fetch import (
+from sackigami.teams import (
     retrieve_complete_team_stats,
     retrieve_weekly_stats,
 )

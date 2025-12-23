@@ -10,12 +10,12 @@ import polars as pl
 
 import sackigami.x as x
 from sackigami.constants import BOT_CONF, COL, STAT_THRESHOLDS, TEAMS
-from sackigami.fetch import (
+from sackigami.teams import (
+    GameDay,
+    SimilarStatLines,
     find_similar_stat_lines,
     parse_last_gameday,
     parse_sack_data,
-    SimilarStatLines,
-    GameDay,
 )
 
 # TODO: Reduce save file size by only storing identifyind data

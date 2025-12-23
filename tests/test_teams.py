@@ -2,14 +2,13 @@ import random
 
 import polars as pl
 import pytest
-
-from fetch import (
-    find_similar_stat_lines,
-    retrieve_weekly_stats,
+from constants import TEAMS
+from teams import (
     GameDay,
     SimilarStatLines,
+    find_similar_stat_lines,
+    retrieve_weekly_stats,
 )
-from constants import TEAMS
 
 
 # TODO: What if the randoms actually generate equal stat lines?

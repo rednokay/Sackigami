@@ -7,6 +7,6 @@ These are the submodules:
 - `bot`: Main submodule running the bot and parsing most of the data.
 - `cli`: Command line interface.
 - `constants`: Compiles global constants.
-- `fetch`: Fetches NFL data and some data manipulation.
+- `teams`: Fetches NFL team data and some data manipulation.
 - `x`: Uses the X API to make posts.
 """
